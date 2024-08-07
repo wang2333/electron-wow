@@ -1,4 +1,4 @@
-import { Jimp as JimpType } from 'jimp'
+import { jimp as JimpType } from 'jimp'
 
 import { ElectronAPI } from '@electron-toolkit/preload'
 import {
@@ -8,16 +8,17 @@ import {
   KeyboardClass,
   MouseClass,
   Point,
-  Region,
   ScreenClass,
-  Window
+  Window as NutWindow
 } from '@nut-tree/nut-js'
+// import { CV } from '@techstark/opencv-js'
 
 declare global {
   interface Window {
     electron: ElectronAPI
     api: Record<string, any>
     Jimp: JimpType
+    cv: any
     nut: {
       Region
       clipboard: ClipboardClass
@@ -30,8 +31,8 @@ declare global {
       down: (px: number) => Promise<Point[]>
       left: (px: number) => Promise<Point[]>
       right: (px: number) => Promise<Point[]>
-      getWindows: () => Promise<Window[]>
-      getActiveWindow: () => Promise<Window>
+      getWindows: () => Promise<NutWindow[]>
+      getActiveWindow: () => Promise<NutWindow>
       loadImage: (parameters: string) => Promise<Image>
       saveImage: (parameters: ImageWriterParameters) => Promise<void>
       imageResource: (fileName: string) => Promise<Image>

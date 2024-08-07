@@ -24,6 +24,7 @@
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
     "@nut-tree/nut-js": "4.2.1-next.20240411081530",
+    "@techstark/opencv-js": "4.10.0-beta.1",
     "electron-updater": "^6.1.7",
     "jimp": "^0.22.12"
   },

@@ -1,47 +1,29 @@
-import { Point } from '@nut-tree/nut-js'
-import electronLogo from './assets/electron.svg'
-import Versions from './components/Versions'
-import { grabRegion } from './Control'
+import { grabRegion, loadImage, saveImage } from './Control'
 
 function App(): JSX.Element {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
-
-  async function clickAtPosition(position: Point) {
-    // await mouseRightClick([position])
-    await grabRegion('./ppp/112.png', 0, 0, 500, 500)
+  const getWindows = async () => {
+    const res = await window.api.activeWindow()
+    console.log('👻 ~ res:', res)
+  }
+  const save = async () => {
+    const imageData = await grabRegion(222, 222, 500, 500)
+    await saveImage('/123123.png', imageData)
   }
 
+  const load = async () => {
+    loadImage('/123123.png', (_, src) => {
+      const ele = document.getElementById('image') as HTMLImageElement
+      if (ele) {
+        ele.src = src
+      }
+    })
+  }
   return (
     <>
-      <img
-        alt="logo"
-        className="logo"
-        src={electronLogo}
-        onClick={() => {
-          clickAtPosition({ x: 0, y: 0 })
-        }}
-      />
-      <div className="creator">Powered by electron-vite</div>
-      <div className="text">
-        Build an Electron app with <span className="react">React</span>
-        &nbsp;and <span className="ts">TypeScript</span>
-      </div>
-      <p className="tip">
-        Please try pressing <code>F12</code> to open the devTool
-      </p>
-      <div className="actions">
-        <div className="action">
-          <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
-            Documentation
-          </a>
-        </div>
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
-          </a>
-        </div>
-      </div>
-      <Versions></Versions>
+      <h1 onClick={getWindows}>Image Viewer</h1>
+      <button onClick={save}>Save Image</button>
+      <button onClick={load}>Load Image</button>
+      <img id="image" alt="Image will appear here" />
     </>
   )
 }
