@@ -39,7 +39,7 @@ export const mouseLeftClick = async (position: Point[] | Promise<Point[]>) => {
 /** 短按键 */
 export const pressKey = async (key: Key) => {
   await keyboard.pressKey(key)
-  console.log('1 :>> ', 1)
+  await keyboard.releaseKey(key)
   // await new Promise((resolve) => setTimeout(resolve, 200)) // 间隔50毫秒
   // await keyboard.releaseKey(key)
 }

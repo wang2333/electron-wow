@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import {
   base64ToMat,
@@ -6,25 +6,26 @@ import {
   findImageInLargeImage,
   getImageFourFeature,
   getImagePosition,
+  imageDataToBase64,
   imageToBase64,
   matToCanvas,
   processImages,
-  recognize,
-  saveImage
+  recognize
 } from './Util/imageControl'
 import { Key } from './Util/Key'
 import { grabRegion, pressKey, pressKeyLong } from './Util/mouseContril'
 
 function App(): JSX.Element {
+  const stopLoopRef = useRef(false)
+
   // 保存图片计数
   const [imgNum, setImgNum] = useState(1)
-
   // 雷达起点
   const [startX, setStartX] = useState(100)
   const [startY, setStartY] = useState(100)
   // 雷达尺寸
-  const [width, setWidth] = useState(100)
-  const [height, setHeight] = useState(100)
+  const [width, setWidth] = useState(300)
+  const [height, setHeight] = useState(300)
   // 测试图片名称
   const [imageName, setImageName] = useState('')
   // 测试日志
@@ -46,19 +47,48 @@ function App(): JSX.Element {
   useEffect(() => {
     window.electron.ipcRenderer.removeAllListeners('shortcut-pressed')
     window.electron.ipcRenderer.on('shortcut-pressed', async () => {
-      await pressKeyLong(Key.A, 1000)
+      startLoop()
+      // await pressKeyLong(Key.A, 1000)
       // await pressKey(Key.A)
     })
   }, [])
 
+  useEffect(() => {
+    return () => {
+      stopLoopRef.current = true // Stop the loop on unmount
+    }
+  }, [])
+
   const save = async () => {
     const imageData = await grabRegion(startX, startY, width, height)
-    const base64 = await saveImage(`./images/attack/${imgNum}.png`, imageData)
+    const base64 = await imageDataToBase64(imageData, `./images/attack/${imgNum}.png`)
     setImageName(imgNum.toString())
     setImgNum(imgNum + 1)
     const mat = await base64ToMat(base64)
     matToCanvas(mat, 'canvasOutput')
     saveLog(`路径---${imgNum} 保存成功`)
+  }
+
+  // Function that will be called in the loop
+  const loop = async () => {
+    while (!stopLoopRef.current) {
+      const curImageData = await grabRegion(startX, startY, width, height)
+      const curBase64 = await imageDataToBase64(curImageData)
+      const mat = await base64ToMat(curBase64)
+      matToCanvas(mat, 'canvasOutput')
+
+      // Add a delay if necessary
+      // await new Promise((resolve) => setTimeout(resolve, 1000)); // 1000 ms delay
+    }
+  }
+
+  const startLoop = () => {
+    stopLoopRef.current = false
+    loop() // Start the loop
+  }
+
+  const stopLoop = () => {
+    stopLoopRef.current = true
   }
 
   const imageComparison = async () => {
@@ -156,7 +186,8 @@ function App(): JSX.Element {
         }}
       >
         <button onClick={save}>保存路径</button>
-        <button onClick={save}>启动</button>
+        <button onClick={startLoop}>启动</button>
+        <button onClick={stopLoop}>停止</button>
         <button onClick={imageMatch}>图片匹配</button>
         <button onClick={imageComparison}>对比图片</button>
         <button onClick={process}>旋转匹配</button>

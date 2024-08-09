@@ -91,9 +91,9 @@ const safeCrop = (src: Mat, centerX: number, centerY: number, size: number) => {
 }
 
 /** 保存图片 */
-export const saveImage = async (
-  path: string,
-  imageData: { width: number; height: number; data: Buffer }
+export const imageDataToBase64 = async (
+  imageData: { width: number; height: number; data: Buffer },
+  path?: string
 ) => {
   const buffer = Buffer.from(imageData.data)
   // 处理并保存图像
@@ -102,7 +102,9 @@ export const saveImage = async (
     width: imageData.width,
     height: imageData.height
   })
-  await jimpImage.writeAsync(path)
+  if (path) {
+    await jimpImage.writeAsync(path)
+  }
   const base64 = await jimpImage.getBase64Async(Jimp.MIME_PNG)
   return base64
 }
