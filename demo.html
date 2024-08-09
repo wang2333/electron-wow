@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>数字验证码识别</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 50px;
+      }
+      #captcha {
+        margin: 20px 0;
+      }
+      #result {
+        margin-top: 20px;
+        font-size: 20px;
+        color: green;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>数字验证码识别</h1>
+
+    <!-- 图片选择 -->
+    <input type="file" id="imageUpload" accept="image/*" />
+    <br />
+
+    <!-- 显示上传的验证码图片 -->
+    <img
+      id="captcha"
+      src=""
+      alt="验证码图片"
+      style="display: none; max-width: 100%; height: auto"
+    />
+
+    <!-- 识别结果展示 -->
+    <div id="result">识别结果：<span id="textOutput"></span></div>
+
+    <!-- Tesseract.js 脚本 -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.0/dist/tesseract.min.js"></script>
+    <script>
+      document.getElementById('imageUpload').addEventListener('change', function (event) {
+        const file = event.target.files[0]
+        if (file) {
+          const reader = new FileReader()
+          reader.onload = function (e) {
+            const imgElement = document.getElementById('captcha')
+            imgElement.src = e.target.result
+            imgElement.style.display = 'block'
+            console.log(' e.target.result :>> ', e.target.result)
+
+            // 使用 Tesseract.js 进行 OCR 识别
+            Tesseract.recognize(
+              e.target.result,
+              'eng', // 可以改为 'digits' 或其他语言模型
+              {
+                logger: (m) => console.log(m),
+                langPath: './eng.traineddata' // 模型的存放路径
+              }
+            )
+              .then(({ data: { text } }) => {
+                document.getElementById('textOutput').innerText = text.trim()
+              })
+              .catch((err) => {
+                console.error(err)
+                document.getElementById('textOutput').innerText = '识别失败'
+              })
+          }
+          reader.readAsDataURL(file)
+        }
+      })
+    </script>
+  </body>
+</html>

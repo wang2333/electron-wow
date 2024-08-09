@@ -8,17 +8,18 @@ import {
   KeyboardClass,
   MouseClass,
   Point,
+  Region,
   ScreenClass,
   Window as NutWindow
 } from '@nut-tree/nut-js'
-// import { CV } from '@techstark/opencv-js'
+import { CV } from '@techstark/opencv-js'
 
 declare global {
   interface Window {
     electron: ElectronAPI
     api: Record<string, any>
     Jimp: JimpType
-    cv: any
+    cv: CV
     nut: {
       Region
       clipboard: ClipboardClass
@@ -41,5 +42,6 @@ declare global {
       windowWithTitle: (title: string | RegExp) => WindowQuery
       pixelWithColor: (color: RGBA) => ColorQuery
     }
+    tesseract: any
   }
 }

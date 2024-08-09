@@ -1,0 +1,7 @@
+{
+    "sonarlint.disableTelemetry": true,
+    "sonarlint.rules": {
+        "javascript:S123": "off",
+        "typescript:S456": "off"
+    }
+}

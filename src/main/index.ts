@@ -1,12 +1,13 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, globalShortcut } from 'electron'
 import { join } from 'path'
-
-import { electronApp, is, optimizer } from '@electron-toolkit/utils'
+import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+
+let mainWindow
 
 function createWindow(): void {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
@@ -15,10 +16,13 @@ function createWindow(): void {
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
-      contextIsolation: false, // 保持contextIsolation启用
-      nodeIntegration: true // 继续禁用Node.js集成
+      contextIsolation: false, // 关闭上下文隔离
+      nodeIntegration: true // 开启node集成
     }
   })
+
+  /** 控制窗口置顶 */
+  // mainWindow.setAlwaysOnTop(true, 'floating')
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -54,6 +58,9 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
+  // IPC test
+  ipcMain.on('ping', () => console.log('pong'))
+
   createWindow()
 
   app.on('activate', function () {
@@ -61,9 +68,6 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
-
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -75,5 +79,19 @@ app.on('window-all-closed', () => {
   }
 })
 
-// In this file you can include the rest of your app"s specific main process
-// code. You can also put them in separate files and require them here.
+app.on('ready', () => {
+  // 注册全局快捷键
+  globalShortcut.unregister('F1')
+  globalShortcut.register('F1', () => {
+    // 在这里执行你想要的操作
+    mainWindow.webContents.send('shortcut-pressed', 'F1')
+  })
+
+  // 检查快捷键是否注册成功
+  // console.log(globalShortcut.isRegistered('F1'))
+})
+
+app.on('will-quit', () => {
+  // 注销所有快捷键
+  globalShortcut.unregisterAll()
+})

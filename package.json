@@ -12,7 +12,7 @@
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "start": "electron-vite preview",
-    "dev": "electron-vite dev --watch",
+    "dev": "electron-vite dev -w",
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
@@ -23,10 +23,12 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
-    "@nut-tree/nut-js": "4.2.1-next.20240411081530",
-    "@techstark/opencv-js": "4.10.0-beta.1",
-    "electron-updater": "^6.1.7",
-    "jimp": "^0.22.12"
+    "@nut-tree/nut-js": "^3.1.2",
+    "@techstark/opencv-js": "^4.10.0-beta.1",
+    "get-windows": "^9.1.1",
+    "jimp": "^0.22.12",
+    "reboot-js": "^1.1.5",
+    "sharp": "^0.33.4"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^2.0.0",
@@ -38,7 +40,6 @@
     "@vitejs/plugin-react": "^4.3.1",
     "electron": "^31.0.2",
     "electron-builder": "^24.13.3",
-    "electron-rebuild": "^3.2.9",
     "electron-vite": "^2.3.0",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.3",

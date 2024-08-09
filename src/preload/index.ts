@@ -1,20 +1,13 @@
 import { contextBridge } from 'electron'
-import fs from 'fs'
-import path from 'path'
+import jimp from 'jimp'
 
 import { electronAPI } from '@electron-toolkit/preload'
 import nut from '@nut-tree/nut-js'
-import jimp from 'jimp'
-
-// import cv from '@techstark/opencv-js'
+import cv from '@techstark/opencv-js'
+import tesseract from './tesseract/tesseract.esm.min.js'
 
 // Custom APIs for renderer
-const api = {
-  imagePath: path.join(__dirname, '../../images'),
-  readFile: (path, callback) => {
-    return fs.readFile(path, callback)
-  }
-}
+const api = {}
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
@@ -25,7 +18,8 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('nut', nut)
     contextBridge.exposeInMainWorld('Jimp', jimp)
-    // contextBridge.exposeInMainWorld('cv', cv)
+    contextBridge.exposeInMainWorld('cv', cv)
+    contextBridge.exposeInMainWorld('tesseract', tesseract)
   } catch (error) {
     console.error(error)
   }
@@ -39,5 +33,7 @@ if (process.contextIsolated) {
   // @ts-ignore (define in dts)
   window.Jimp = jimp
   // @ts-ignore (define in dts)
-  // window.cv = cv
+  window.cv = cv
+  // @ts-ignore (define in dts)
+  window.tesseract = tesseract
 }
