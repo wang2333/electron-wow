@@ -22,7 +22,7 @@ function createWindow(): void {
   })
 
   /** 控制窗口置顶 */
-  // mainWindow.setAlwaysOnTop(true, 'floating')
+  mainWindow.setAlwaysOnTop(true, 'floating')
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -86,7 +86,11 @@ app.on('ready', () => {
     // 在这里执行你想要的操作
     mainWindow.webContents.send('shortcut-pressed', 'F1')
   })
-
+  globalShortcut.unregister('F2')
+  globalShortcut.register('F2', () => {
+    // 在这里执行你想要的操作
+    mainWindow.webContents.send('shortcut-pressed', 'F2')
+  })
   // 检查快捷键是否注册成功
   // console.log(globalShortcut.isRegistered('F1'))
 })

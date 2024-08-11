@@ -60,14 +60,25 @@ const calculateDistance = (point1: Point, point2: Point): number => {
 }
 
 /** 计算两个点之间的角度，以正北方向为0度 */
-const calculateAngle = (centerCurrent: Point, centerTarget: Point): number => {
-  let angle =
-    Math.atan2(centerTarget.x - centerCurrent.x, centerCurrent.y - centerTarget.y) * (180 / Math.PI)
-  if (angle > 180) {
-    angle -= 360
-  } else if (angle < -180) {
-    angle += 360
+const calculateAngle = (current: Point, target: Point): number => {
+  let angle = 0
+  // 目标点在左上
+  if (current.x > target.x && current.y > target.y) {
+    angle = Math.atan2(current.x - target.x, current.y - target.y) * (180 / Math.PI)
   }
+  // 目标点在右上
+  if (current.x < target.x && current.y > target.y) {
+    angle = -1 * (Math.atan2(target.x - current.x, current.y - target.y) * (180 / Math.PI))
+  }
+  // 目标点在左下
+  if (current.x > target.x && current.y < target.y) {
+    angle = 180 - Math.atan2(current.x - target.x, target.y - current.y) * (180 / Math.PI)
+  }
+  // 目标点在右下
+  if (current.x < target.x && current.y < target.y) {
+    angle = -1 * (180 - Math.atan2(target.x - current.x, target.y - current.y) * (180 / Math.PI))
+  }
+
   return angle
 }
 
@@ -111,15 +122,15 @@ export const imageDataToBase64 = async (
 
 /** 获取图像位置并绘制匹配结果 */
 export const getImagePosition = async (
-  path: string,
+  base64: string,
   current: { leftImg: string; rightImg: string; topImg: string; bottomImg: string },
   target: { leftImg: string; rightImg: string; topImg: string; bottomImg: string }
 ) => {
   // 读取大图并转换为OpenCV矩阵
-  const panelMat = await imageToMat(path)
+  const panelMat = await base64ToMat(base64)
 
   // 转为灰度图像
-  cv.cvtColor(panelMat, panelMat, cv.COLOR_RGBA2GRAY)
+  // cv.cvtColor(panelMat, panelMat, cv.COLOR_RGBA2GRAY)
 
   // 初始化最佳匹配结果
   let bestMatch = { distance: Infinity, angle: 0, score: -1 }
@@ -137,7 +148,7 @@ export const getImagePosition = async (
   }
 
   // 显示最终的匹配结果图像
-  cv.imshow('canvasOutput', panelMat)
+  cv.imshow('canvasOutput2', panelMat)
 
   // 释放大图矩阵的内存
   panelMat.delete()
@@ -152,8 +163,8 @@ const matchAndDraw = async (paneMat: Mat, currentImg: string, targetImg: string)
   const targetMat = await base64ToMat(targetImg)
 
   // 转为灰度图像
-  cv.cvtColor(curentMat, curentMat, cv.COLOR_RGBA2GRAY)
-  cv.cvtColor(targetMat, targetMat, cv.COLOR_RGBA2GRAY)
+  // cv.cvtColor(curentMat, curentMat, cv.COLOR_RGBA2GRAY)
+  // cv.cvtColor(targetMat, targetMat, cv.COLOR_RGBA2GRAY)
 
   // 进行模板匹配
   const resultCurrent = new cv.Mat()
@@ -193,8 +204,8 @@ const matchAndDraw = async (paneMat: Mat, currentImg: string, targetImg: string)
 }
 
 /** 获取图片的4个特征小图 */
-export const getImageFourFeature = async (path: string) => {
-  const src = await imageToMat(path)
+export const getImageFourFeature = async (base64: string) => {
+  const src = await base64ToMat(base64)
 
   // Calculate the center point
   const centerX = Math.floor(src.cols / 2)
@@ -207,6 +218,7 @@ export const getImageFourFeature = async (path: string) => {
   const bottomImg = safeCrop(src, centerX, centerY + CROP_SIZE, CROP_SIZE)
 
   const obj = {
+    centerImg: matToBase64(centerImg),
     leftImg: matToBase64(leftImg),
     rightImg: matToBase64(rightImg),
     topImg: matToBase64(topImg),
@@ -227,8 +239,8 @@ export const getImageFourFeature = async (path: string) => {
 /** 旋转找图 */
 export const processImages = async (queryImg: string, trainImg: string) => {
   // 1. 加载模板和目标图像
-  const src = await imageToMat(queryImg)
-  const template = await imageToMat(trainImg)
+  const src = await base64ToMat(queryImg)
+  const template = await base64ToMat(trainImg)
 
   // 转为灰度图像
   cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY)
@@ -291,12 +303,16 @@ export const processImages = async (queryImg: string, trainImg: string) => {
   }
 }
 
-/** 在大图中找到小图的位置 */
-export const findImageInLargeImage = async (largeImagePath: string, smallImageBase64: string) => {
+/** 在大图中找到小图的位置，并计算与目标点的距离和角度 */
+export const findImageInLargeImage = async (
+  largeBase64: string,
+  smallBase64: string,
+  centerTarget: any
+) => {
   // 读取大图并转换为OpenCV矩阵
-  const largeMat = await imageToMat(largeImagePath)
+  const largeMat = await base64ToMat(largeBase64)
   // 加载小图并转换为OpenCV矩阵
-  const smallMat = await imageToMat(smallImageBase64)
+  const smallMat = await base64ToMat(smallBase64)
 
   // 转为灰度图像
   cv.cvtColor(largeMat, largeMat, cv.COLOR_RGBA2GRAY)
@@ -312,29 +328,26 @@ export const findImageInLargeImage = async (largeImagePath: string, smallImageBa
   // 获取匹配结果的最优位置
   const minMaxLocResult = cv.minMaxLoc(result, mask)
   const maxPoint = minMaxLocResult.maxLoc
-
   // 计算小图在大图上的中心点
   const center = calculateCenter(maxPoint, smallMat)
 
   // 计算距离和角度
-  const distance = 0 // 不需要计算距离，因为只匹配一个小图
-  const angle = 0 // 不需要计算角度，因为只匹配一个小图
+  const distance = calculateDistance(centerTarget, center)
+  const angle = calculateAngle(centerTarget, center)
 
-  // 绘制小图的匹配框
-  const color = new cv.Scalar(255, 0, 0, 255) // 红色框
-  drawRectangle(largeMat, maxPoint, smallMat, color)
+  // 获取匹配度（分数）
+  const score = cv.minMaxLoc(result, mask).maxVal
 
-  // 显示最终的匹配结果图像
-  cv.imshow('canvasOutput', largeMat)
-
-  // 释放内存
+  // Clean up
   largeMat.delete()
   smallMat.delete()
   result.delete()
-  mask.delete()
 
-  // 返回匹配的位置和中心点
-  return { position: maxPoint, center, distance, angle }
+  return {
+    center,
+    angle,
+    score
+  }
 }
 
 /** 绘制路径点 */

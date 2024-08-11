@@ -3,7 +3,7 @@ import { Key } from './Key'
 
 const { mouse, straightTo: nutStraightTo, screen, Region, keyboard } = window.nut
 
-keyboard.config.autoDelayMs = 50
+keyboard.config.autoDelayMs = 0
 
 export const straightTo = (position: Point | Promise<Point>) => {
   return nutStraightTo(position)
@@ -36,19 +36,23 @@ export const mouseLeftClick = async (position: Point[] | Promise<Point[]>) => {
   return await mouse.leftClick()
 }
 
-/** 短按键 */
+/** 按键 */
+export const pressKeyDown = async (key: Key) => {
+  await keyboard.pressKey(key)
+}
+/** 释放按键 */
+export const pressKeyUp = async (key: Key) => {
+  await keyboard.releaseKey(key)
+}
+
 export const pressKey = async (key: Key) => {
   await keyboard.pressKey(key)
   await keyboard.releaseKey(key)
-  // await new Promise((resolve) => setTimeout(resolve, 200)) // 间隔50毫秒
-  // await keyboard.releaseKey(key)
 }
 
 /** 长按键 */
 export const pressKeyLong = async (key: Key, duration: number) => {
-  const startTime = Date.now()
-  while (Date.now() - startTime < duration) {
-    await keyboard.pressKey(key)
-    await keyboard.releaseKey(key)
-  }
+  await keyboard.pressKey(key)
+  await new Promise((resolve) => setTimeout(resolve, duration))
+  await keyboard.releaseKey(key)
 }

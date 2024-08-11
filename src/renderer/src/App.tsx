@@ -13,19 +13,21 @@ import {
   recognize
 } from './Util/imageControl'
 import { Key } from './Util/Key'
-import { grabRegion, pressKey, pressKeyLong } from './Util/mouseContril'
+import { grabRegion, pressKey, pressKeyDown, pressKeyLong, pressKeyUp } from './Util/mouseContril'
 
+const sd = 2000 / 360
 function App(): JSX.Element {
   const stopLoopRef = useRef(false)
+  const pathIndexRef = useRef(0)
 
   // 保存图片计数
   const [imgNum, setImgNum] = useState(1)
   // 雷达起点
-  const [startX, setStartX] = useState(100)
-  const [startY, setStartY] = useState(100)
+  const [startX, setStartX] = useState(1470)
+  const [startY, setStartY] = useState(85)
   // 雷达尺寸
-  const [width, setWidth] = useState(300)
-  const [height, setHeight] = useState(300)
+  const [width, setWidth] = useState(216)
+  const [height, setHeight] = useState(216)
   // 测试图片名称
   const [imageName, setImageName] = useState('')
   // 测试日志
@@ -33,25 +35,26 @@ function App(): JSX.Element {
 
   /** 报错日志信息 */
   const saveLog = (info: string) => {
-    const newLog = `${log}\n${info}`
-    const arr = newLog.split('\n')
-    if (arr.length > 300) {
-      setLog(arr.slice(-300).join('\n'))
-    } else {
-      setLog(newLog)
-    }
+    setLog(info)
+    // const newLog = `${log}\n${info}`
+    // const arr = newLog.split('\n')
+    // if (arr.length > 300) {
+    //   setLog(arr.slice(-300).join('\n'))
+    // } else {
+    //   setLog(newLog)
+    // }
     const textarea = document.getElementById('textarea') as HTMLTextAreaElement
     textarea.scrollTop = textarea.scrollHeight
   }
 
-  useEffect(() => {
-    window.electron.ipcRenderer.removeAllListeners('shortcut-pressed')
-    window.electron.ipcRenderer.on('shortcut-pressed', async () => {
+  window.electron.ipcRenderer.removeAllListeners('shortcut-pressed')
+  window.electron.ipcRenderer.on('shortcut-pressed', async (_, info) => {
+    if (info === 'F1') {
       startLoop()
-      // await pressKeyLong(Key.A, 1000)
-      // await pressKey(Key.A)
-    })
-  }, [])
+    } else if (info === 'F2') {
+      stopLoop()
+    }
+  })
 
   useEffect(() => {
     return () => {
@@ -62,6 +65,7 @@ function App(): JSX.Element {
   const save = async () => {
     const imageData = await grabRegion(startX, startY, width, height)
     const base64 = await imageDataToBase64(imageData, `./images/attack/${imgNum}.png`)
+
     setImageName(imgNum.toString())
     setImgNum(imgNum + 1)
     const mat = await base64ToMat(base64)
@@ -71,15 +75,112 @@ function App(): JSX.Element {
 
   // Function that will be called in the loop
   const loop = async () => {
+    // 和箭头模板进行选择匹配
+    const tempBase64 = await imageToBase64('./images/game/arrow.png')
+
     while (!stopLoopRef.current) {
       const curImageData = await grabRegion(startX, startY, width, height)
       const curBase64 = await imageDataToBase64(curImageData)
+
+      // 当前位置特征
+      const curPosition = await getImageFourFeature(curBase64)
+
+      // 绘制当前雷达
       const mat = await base64ToMat(curBase64)
       matToCanvas(mat, 'canvasOutput')
 
+      // await findMonster()
+
+      if (pathIndexRef.current === 0) {
+        await moveTarget('./images/attack/1.png', curPosition, tempBase64)
+      } else if (pathIndexRef.current === 1) {
+        await moveTarget('./images/attack/2.png', curPosition, tempBase64)
+      } else if (pathIndexRef.current === 2) {
+        await moveTarget('./images/attack/3.png', curPosition, tempBase64)
+      } else {
+        stopLoop()
+      }
       // Add a delay if necessary
-      // await new Promise((resolve) => setTimeout(resolve, 1000)); // 1000 ms delay
+      await new Promise((resolve) => setTimeout(resolve, 50)) // 1000 ms delay
     }
+  }
+
+  const moveTarget = async (path: string, curPosition: any, tempBase64: string) => {
+    const { bestAngle } = await processImages(curPosition.centerImg, tempBase64)
+    // 绘制下个目标点
+    const targetBase64 = await imageToBase64(path)
+    const tarPosition = await getImageFourFeature(targetBase64)
+    // 当前图片到目标图片的距离
+    const { distance, angle } = await getImagePosition(targetBase64, curPosition, tarPosition)
+
+    // 获取视角应该偏移的角度
+    let diffAngle = 0
+    let needAngle = 0
+    if (angle < 0) {
+      diffAngle = 360 + angle
+      needAngle = bestAngle - diffAngle
+    }
+    if (angle > 0) {
+      needAngle = (angle - bestAngle) * -1
+    }
+
+    if (needAngle < -180) {
+      needAngle = needAngle + 360
+    } else if (needAngle > 180) {
+      needAngle = needAngle - 360
+    }
+
+    const time = Math.abs(needAngle) * sd
+
+    if (distance > 1 && Math.abs(needAngle) > 5) {
+      await pressKeyUp(Key.W)
+
+      if (needAngle > 0) {
+        await pressKeyLong(Key.D, time)
+      } else {
+        await pressKeyLong(Key.A, time)
+      }
+    }
+    await pressKeyDown(Key.W)
+    if (distance <= 1) {
+      await pressKeyUp(Key.W)
+      pathIndexRef.current = pathIndexRef.current + 1
+    }
+
+    saveLog(
+      `人物角度：${bestAngle} 距目标点距离：${distance} 距目标点距角度${angle}/${diffAngle}/${needAngle}`
+    )
+  }
+
+  const findMonster = async () => {
+    // 判断是否找到怪物
+    const curImageData = await grabRegion(50, 50, 1600, 780)
+    const curBase64 = await imageDataToBase64(curImageData)
+
+    // 获取怪物血条模板
+    const tempBase64 = await imageToBase64('./images/game/blood.png')
+
+    console.time()
+    // const { center, score, distance, angle } =
+    const { center, angle, score } = await findImageInLargeImage(curBase64, tempBase64, {
+      x: 850,
+      y: 800
+    })
+    console.timeEnd()
+
+    // console.log('👻 ~ position:', center, score, distance, angle)
+    saveLog(`怪物偏离角度：${angle}----${center.x}---${center.y}`)
+    const time = Math.abs(angle) * sd
+
+    if (Math.abs(angle) > 5) {
+      if (angle > 0) {
+        await pressKeyLong(Key.A, time)
+      } else {
+        await pressKeyLong(Key.D, time)
+      }
+    }
+
+    // 判断与怪物的距离
   }
 
   const startLoop = () => {
@@ -87,8 +188,12 @@ function App(): JSX.Element {
     loop() // Start the loop
   }
 
-  const stopLoop = () => {
+  const stopLoop = async () => {
     stopLoopRef.current = true
+    pathIndexRef.current = 0
+    setTimeout(async () => {
+      await pressKeyUp(Key.W)
+    }, 500)
   }
 
   const imageComparison = async () => {
@@ -104,15 +209,13 @@ function App(): JSX.Element {
   }
 
   const imageMatch = async () => {
-    await findImageInLargeImage('./images/1.png', './images/0.png')
+    // await findImageInLargeImage('./images/1.png', './images/0.png')
   }
 
   const process = async () => {
-    const { bestAngle, bestMatchVal } = await processImages(
-      './images/11.png',
-      `./images/${imageName}.png`
-    )
-    saveLog(` 角度：${bestAngle} 匹配得分：${bestMatchVal}`)
+    // const tempBase64 = await imageToBase64('./images/game/arrow.png')
+    // const { bestAngle, bestMatchVal } = await processImages(curBase64, tempBase64)
+    // saveLog(` 角度：${bestAngle} 匹配得分：${bestMatchVal}`)
   }
 
   const getRoute = () => {
@@ -197,7 +300,15 @@ function App(): JSX.Element {
         <button onClick={keyboard2}>测试长按键</button>
       </div>
 
-      <canvas id="canvasOutput"></canvas>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-around'
+        }}
+      >
+        <canvas id="canvasOutput"></canvas>
+        <canvas id="canvasOutput2"></canvas>
+      </div>
     </div>
   )
 }
