@@ -1,13 +1,28 @@
 import { contextBridge } from 'electron'
 import jimp from 'jimp'
+import path from 'path'
+import * as fs from 'node:fs/promises'
 
 import { electronAPI } from '@electron-toolkit/preload'
 import nut from '@nut-tree/nut-js'
 import cv from '@techstark/opencv-js'
 import tesseract from './tesseract/tesseract.esm.min.js'
 
+// const windows = windowManager.getWindows()
+// // 遍历所有窗口，找到标题匹配的窗口
+// for (const win of windows) {
+//   if (win.getTitle().includes('下载')) {
+//     win.setBounds({ x: 0, y: 0 })
+//     break
+//   }
+// }
+
 // Custom APIs for renderer
-const api = {}
+const api = {
+  /** 获取资源路径 */
+  getResourcePath: (filePath) => path.join(__dirname, '../../', filePath),
+  readdir: (filePath) => fs.readdir(path.join(__dirname, '../../', filePath))
+}
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise

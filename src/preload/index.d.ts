@@ -10,7 +10,8 @@ import {
   Point,
   Region,
   ScreenClass,
-  Window as NutWindow
+  Window as NutWindow,
+  RGBA
 } from '@nut-tree/nut-js'
 import { CV } from '@techstark/opencv-js'
 
@@ -22,6 +23,7 @@ declare global {
     cv: CV
     nut: {
       Region
+      RGBA
       clipboard: ClipboardClass
       keyboard: KeyboardClass
       mouse: MouseClass

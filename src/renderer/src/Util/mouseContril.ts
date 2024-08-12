@@ -9,6 +9,12 @@ export const straightTo = (position: Point | Promise<Point>) => {
   return nutStraightTo(position)
 }
 
+/** 获取指定位置色值 */
+export const colorAt = async (point: Point | Promise<Point>) => {
+  const rgba = await screen.colorAt(point)
+  return rgba.toHex()
+}
+
 /** 指定区域截图 */
 export const grabRegion = async (x: number, y: number, width: number, height: number) => {
   // 定义你想要截图的区域
@@ -27,13 +33,13 @@ export const mouseMove = async (position: Point[] | Promise<Point[]>) => {
 /** 单击右键 */
 export const mouseRightClick = async (position: Point[] | Promise<Point[]>) => {
   mouseMove(position)
-  return await mouse.rightClick()
+  await mouse.rightClick()
 }
 
 /** 单击左键 */
 export const mouseLeftClick = async (position: Point[] | Promise<Point[]>) => {
   mouseMove(position)
-  return await mouse.leftClick()
+  await mouse.leftClick()
 }
 
 /** 按键 */
@@ -45,6 +51,7 @@ export const pressKeyUp = async (key: Key) => {
   await keyboard.releaseKey(key)
 }
 
+// 单词按键
 export const pressKey = async (key: Key) => {
   await keyboard.pressKey(key)
   await keyboard.releaseKey(key)
