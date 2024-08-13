@@ -272,7 +272,7 @@ function Monster(): JSX.Element {
       needAngle = needAngle - 360
     }
 
-    if (distance > 1 && Math.abs(needAngle) > 10) {
+    if (distance > 2 && Math.abs(needAngle) > 10) {
       const time = Math.abs(needAngle) * DEGREES_PER_MILLISEOND
       await playerStop()
       if (needAngle > 0) {
@@ -334,7 +334,7 @@ function Monster(): JSX.Element {
     // 计算角度
     const needAngle = calculateAngle(PERSON_POSITION, point)
 
-    if (Math.abs(needAngle) > 5) {
+    if (Math.abs(needAngle) > 10) {
       const time = Math.abs(needAngle) * DEGREES_PER_MILLISEOND
       await playerStop()
       if (needAngle > 0) {
@@ -370,7 +370,7 @@ function Monster(): JSX.Element {
   }
 
   const test = async () => {
-    await clickInRect(700, 300, 1300, 500, 50, 50)
+    await clickInRect(520, 570, 1235, 930, 100, 150)
     // await clickInSpiral(700, 300, 200, 50, 10)
     // await clickInCircle(700, 300, 200, 10)
   }
