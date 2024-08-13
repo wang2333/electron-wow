@@ -24,6 +24,6 @@ export const BLOOD_IMG_PATH = window.api.getResourcePath('resources/images/blood
 
 /** 事件对应的坐标和色值 */
 export const COLOR_DICT: IColorDict = {
-  playerAttack: [100, 100, '#000000'],
-  hasMonster: [100, 100, '#000000']
+  playerAttack: [345, 1084, '#ffe66c'],
+  hasMonster: [1350, 1050, '#80df27']
 }

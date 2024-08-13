@@ -5,7 +5,7 @@ const cv = window.cv
 const Tesseract = window.tesseract
 
 // 定义特征截图的大小
-const CROP_SIZE = 40
+const CROP_SIZE = 50
 
 /** base64图片生成img节点 */
 export const base64ToImage = async (base64: string): Promise<HTMLImageElement> => {
@@ -130,7 +130,7 @@ export const getImagePosition = async (
   const mat = await base64ToMat(targetBase64)
 
   // 转为灰度图像
-  cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY)
+  // cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY)
 
   // 初始化最佳匹配结果
   let bestMatch = { distance: Infinity, angle: 0, score: -1 }
@@ -167,8 +167,8 @@ const matchAndDraw = async (paneMat: Mat, currentImg: string, targetImg: string)
   const targetMat = await base64ToMat(targetImg)
 
   // 转为灰度图像
-  cv.cvtColor(curentMat, curentMat, cv.COLOR_RGBA2GRAY)
-  cv.cvtColor(targetMat, targetMat, cv.COLOR_RGBA2GRAY)
+  // cv.cvtColor(curentMat, curentMat, cv.COLOR_RGBA2GRAY)
+  // cv.cvtColor(targetMat, targetMat, cv.COLOR_RGBA2GRAY)
 
   // 进行模板匹配
   const resultCurrent = new cv.Mat()

@@ -11,6 +11,7 @@ import {
 import {
   base64ToMat,
   calculateAngle,
+  calculateDistance,
   getImageFourFeature,
   getImagePosition,
   imageDataToBase64,
@@ -110,7 +111,6 @@ function Monster(): JSX.Element {
     setWidth(config.radarWidth)
     setHeight(config.radarHeight)
 
-    console.log('👻 ~ config:', config)
     // 读取任务箭头模板资源
     const arrowBase64 = await imageToBase64(ARROW_IMG_PATH)
     // 读取怪物血条模板资源
@@ -188,7 +188,7 @@ function Monster(): JSX.Element {
 
     const imgType = bsetImg.split('-')
     const step = +imgType[1].split('.')[0]
-    pathIndexRef.current = step
+    // pathIndexRef.current = step
 
     setImgPaths(imgs)
     setPathType(imgType[0] as IPathType)
@@ -210,21 +210,21 @@ function Monster(): JSX.Element {
         continue
       }
 
-      // 战斗结束，拾取
-      if (isAttactRef.current) {
-        isAttactRef.current = false
-        await clickInRect(700, 300, 1300, 500, 50, 50)
-      }
+      // // 战斗结束，拾取
+      // if (isAttactRef.current) {
+      //   isAttactRef.current = false
+      //   await clickInRect(700, 300, 1300, 500, 50, 50)
+      // }
 
       // 判断是否寻找到怪物
       const monsterPosition = await isFindMonster()
       if (monsterPosition) {
         // 找到怪物，停止移动
         await playerStop()
-        // 不在战斗，向怪物移动
-        await moveToMonster(monsterPosition)
         // 尝试攻击怪物
         await pressKey(Key.Q)
+        // 不在战斗，向怪物移动
+        await moveToMonster(monsterPosition.targetPoint)
 
         saveLog(`向怪物发起攻击`)
         continue
@@ -240,7 +240,7 @@ function Monster(): JSX.Element {
         stopLoop()
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 500)) // 1000 ms delay
+      // await new Promise((resolve) => setTimeout(resolve, 500)) // 1000 ms delay
     }
   }
 
@@ -272,7 +272,7 @@ function Monster(): JSX.Element {
       needAngle = needAngle - 360
     }
 
-    if (distance > 1 && Math.abs(needAngle) > 5) {
+    if (distance > 1 && Math.abs(needAngle) > 10) {
       const time = Math.abs(needAngle) * DEGREES_PER_MILLISEOND
       await playerStop()
       if (needAngle > 0) {
@@ -283,14 +283,14 @@ function Monster(): JSX.Element {
     }
     await playerForward()
 
-    saveLog(`向路径点--${pathIndexRef.current}移动`)
+    // saveLog(`向路径点--${pathIndexRef.current}移动`)
 
-    if (distance <= 1) {
+    if (distance < 2) {
       await playerStop()
       pathIndexRef.current = pathIndexRef.current + 1
     }
 
-    saveLog(`修正视角：${needAngle}° 距目标点距离：${distance} `)
+    saveLog(`修正视角：${needAngle.toFixed(2)}° 距目标点距离：${distance} `)
   }
 
   /** 获取当前雷达图特征 */
@@ -313,15 +313,17 @@ function Monster(): JSX.Element {
     await pressKey(Key.Tab)
     // 判断怪物是否选中
     const color = await colorAt({ x: COLOR_DICT.hasMonster[0], y: COLOR_DICT.hasMonster[1] })
-    if (color === COLOR_DICT.hasMonster[2]) {
+    if (color.includes(COLOR_DICT.hasMonster[2])) {
       // 获取人物视角范围
       const curImageData = await grabRegion(50, 50, 1600, 780)
       const curBase64 = await imageDataToBase64(curImageData)
       // 计算是否找到怪物
       const { center: targetPoint, score } = await ImageInfoInParent(curBase64, imgTemplate.blood)
 
+      const distance = +calculateDistance(targetPoint, PERSON_POSITION).toFixed(2)
+
       if (score > 0.8) {
-        return targetPoint
+        return { targetPoint, distance }
       }
     }
     return false
@@ -336,9 +338,9 @@ function Monster(): JSX.Element {
       const time = Math.abs(needAngle) * DEGREES_PER_MILLISEOND
       await playerStop()
       if (needAngle > 0) {
-        await pressKeyLong(Key.D, time)
-      } else {
         await pressKeyLong(Key.A, time)
+      } else {
+        await pressKeyLong(Key.D, time)
       }
     }
     await playerForward()
@@ -347,7 +349,8 @@ function Monster(): JSX.Element {
   /** 人物是否战斗中 */
   const isPlayerAttact = async () => {
     const color = await colorAt({ x: COLOR_DICT.playerAttack[0], y: COLOR_DICT.playerAttack[1] })
-    return color === COLOR_DICT.playerAttack[2]
+    const color2 = await colorAt({ x: 1221, y: 1074 })
+    return !color.includes(COLOR_DICT.playerAttack[2]) && color2.includes('#ca0000')
   }
 
   /** 人物前进 */
@@ -359,9 +362,9 @@ function Monster(): JSX.Element {
   /** 人物停止 */
   const playerStop = async () => {
     if (isMoveRef.current) {
-      setTimeout(async () => {
-        await pressKeyUp(Key.W)
-      }, 500)
+      // setTimeout(async () => {
+      await pressKeyUp(Key.W)
+      // }, 500)
     }
     isMoveRef.current = false
   }
