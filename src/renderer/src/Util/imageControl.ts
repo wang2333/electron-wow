@@ -154,7 +154,11 @@ export const getImagePosition = async (
   mat.delete()
 
   // 返回最佳匹配的距离和角度
-  return { distance: bestMatch.distance, angle: bestMatch.angle, score: bestMatch.score }
+  return {
+    distance: bestMatch.distance,
+    angle: bestMatch.angle,
+    score: bestMatch.score === 1 ? 0 : bestMatch.score
+  }
 }
 
 /** 进行模板匹配并绘制匹配框和连线 */
@@ -182,11 +186,11 @@ const matchAndDraw = async (paneMat: Mat, currentImg: string, targetImg: string)
   const centerTarget = calculateCenter(maxPointTarget, targetMat)
 
   // 计算距离和角度
-  const distance = calculateDistance(centerCurrent, centerTarget)
-  const angle = calculateAngle(centerCurrent, centerTarget)
+  const distance = calculateDistance(centerCurrent, centerTarget).toFixed(2)
+  const angle = calculateAngle(centerCurrent, centerTarget).toFixed(2)
 
   // 获取匹配度（分数）
-  const score = cv.minMaxLoc(resultTarget, mask).maxVal
+  const score = cv.minMaxLoc(resultTarget, mask).maxVal.toFixed(2)
 
   // 绘制匹配框和连线
   drawRectangle(paneMat, maxPointCurrent, curentMat, new cv.Scalar(255, 0, 0, 255)) // 红色框表示 current
@@ -200,7 +204,7 @@ const matchAndDraw = async (paneMat: Mat, currentImg: string, targetImg: string)
   resultTarget.delete()
   mask.delete()
 
-  return { distance, angle, score }
+  return { distance: +distance, angle: +angle, score: +score === 1 ? 0 : +score }
 }
 
 /** 获取图片的4个特征小图 */
@@ -337,7 +341,7 @@ export const ImageInfoInParent = async (largeBase64: string, smallBase64: string
 
   return {
     center: targetPoint,
-    score
+    score: score === 1 ? 0 : score
   }
 }
 

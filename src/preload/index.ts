@@ -21,6 +21,7 @@ import tesseract from './tesseract/tesseract.esm.min.js'
 const api = {
   /** 获取资源路径 */
   getResourcePath: (filePath) => path.join(__dirname, '../../', filePath),
+  /** 获取资源目录 */
   readdir: (filePath) => fs.readdir(path.join(__dirname, '../../', filePath))
 }
 
