@@ -20,9 +20,11 @@ import tesseract from './tesseract/tesseract.esm.min.js'
 // Custom APIs for renderer
 const api = {
   /** 获取资源路径 */
-  getResourcePath: (filePath) => path.join(__dirname, '../../', filePath),
+  getResourcePath: (filePath: string) => path.join(__dirname, '../../', filePath),
   /** 获取资源目录 */
-  readdir: (filePath) => fs.readdir(path.join(__dirname, '../../', filePath))
+  readdir: (filePath: string) => fs.readdir(path.join(__dirname, '../../', filePath)),
+  /** 读取文件 */
+  readFile: (filePath: string) => fs.readFile(path.join(__dirname, '../../', filePath))
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

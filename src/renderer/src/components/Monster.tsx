@@ -103,6 +103,14 @@ function Monster(): JSX.Element {
 
   /** 读取模板文件 */
   const init = async () => {
+    const file = await window.api.readFile('./resources/config.json')
+    const config = JSON.parse(file.toString())
+    setStartX(config.radarX)
+    setStartY(config.radarY)
+    setWidth(config.radarWidth)
+    setHeight(config.radarHeight)
+
+    console.log('👻 ~ config:', config)
     // 读取任务箭头模板资源
     const arrowBase64 = await imageToBase64(ARROW_IMG_PATH)
     // 读取怪物血条模板资源
