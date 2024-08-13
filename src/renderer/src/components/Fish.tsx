@@ -54,11 +54,11 @@ const Fish: React.FC = () => {
       <div className="config">
         <div className="item">
           <span>甩干：</span>
-          <input value={key1} placeholder={'甩干'} onChange={(e) => setKey1(+e.target.value)} />
+          <input value={key1} placeholder={'甩干'} onChange={(e) => setKey1(e.target.value)} />
         </div>
         <div className="item">
           <span>收杆：</span>
-          <input value={key2} placeholder={'收杆'} onChange={(e) => setKey2(+e.target.value)} />
+          <input value={key2} placeholder={'收杆'} onChange={(e) => setKey2(e.target.value)} />
         </div>
 
         <div className="item">
