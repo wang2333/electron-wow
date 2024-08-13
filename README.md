@@ -1,4 +1,4 @@
-# electron-app
+# wow
 
 An Electron application with React and TypeScript
 

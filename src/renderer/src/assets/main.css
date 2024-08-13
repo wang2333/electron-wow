@@ -14,26 +14,58 @@ body {
   width: 100%;
 }
 
-.coordinates {
-  padding: 10px;
-  display: flex;
-  gap: 10px;
-  justify-content: space-between;
+.tabs {
+  .tab-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    border-bottom: 1px solid #fff;
+    margin-bottom: 10px;
+    a {
+      display: inline-block;
+      padding: 5px 0;
+      cursor: pointer;
+      font-size: 18px;
+      &.active {
+        color: orange;
+      }
+    }
+  }
+}
+.monster {
+  .coordinates {
+    padding: 10px;
+    display: flex;
+    gap: 50px;
+    justify-content: center;
+    input {
+      display: inline-block;
+      width: 100px;
+    }
+    .coordinates-item {
+      display: flex;
+      gap: 10px;
+    }
+  }
+
+  .result {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    textarea {
+      width: 100%;
+    }
+  }
+}
+
+.fish {
   input {
     display: inline-block;
     width: 100px;
   }
-  .coordinates-item {
+  .config {
     display: flex;
-    gap: 10px;
-  }
-}
-
-.result {
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  textarea {
-    width: 100%;
+    justify-content: center;
+    gap: 20px;
   }
 }
