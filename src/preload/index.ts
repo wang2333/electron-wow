@@ -1,7 +1,7 @@
 import { contextBridge } from 'electron'
 import jimp from 'jimp'
-import path from 'path'
 import * as fs from 'node:fs/promises'
+import path from 'path'
 
 import { electronAPI } from '@electron-toolkit/preload'
 import nut from '@nut-tree/nut-js'

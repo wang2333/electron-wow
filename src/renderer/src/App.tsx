@@ -30,7 +30,7 @@ import {
   pressKeyUp
 } from './Util/mouseContril'
 
-interface IimgDict {
+interface IimgTemplate {
   /** 雷达任务箭头 */
   arrow: string
   /** 怪物血条 */
@@ -62,10 +62,12 @@ function App(): JSX.Element {
   // 录制路径类型
   const [pathType, setPathType] = useState<IPathType>('monster')
   // 存放模板图片
-  const [imgDict, setImgDict] = useState<IimgDict>({
+  const [imgTemplate, setImgTemplate] = useState<IimgTemplate>({
     arrow: '',
     blood: ''
   })
+  // 存放路径图片
+  const [imgPaths, setImgPaths] = useState<Record<string, string>>({})
 
   useEffect(() => {
     // 脚本初始化
@@ -106,10 +108,12 @@ function App(): JSX.Element {
     // 读取怪物血条模板资源
     const bloodBase64 = await imageToBase64(BLOOD_IMG_PATH)
 
-    setImgDict({
+    setImgTemplate({
       arrow: arrowBase64,
       blood: bloodBase64
     })
+
+    await checkCurrentPosition()
   }
 
   /** 保存路径点 */
@@ -124,10 +128,11 @@ function App(): JSX.Element {
   }
 
   /** 脚本开始 */
-  const startLoop = () => {
-    checkCurrentPosition()
+  const startLoop = async () => {
     stopLoopRef.current = false
-    loop() // Start the loop
+    setTimeout(() => {
+      loop() // Start the loop
+    }, 500)
   }
 
   /** 脚本结束 */
@@ -147,12 +152,13 @@ function App(): JSX.Element {
   /** 查找当前的路径类型和路径点 */
   const checkCurrentPosition = async () => {
     const curPosition = await getCurPosition()
-
     const attackPaths = await window.api.readdir('images')
+    // 记录所有路径图片
     const imgNames = attackPaths.filter((v: string) => v.includes('.'))
 
     const result = {}
-    for (const item of imgNames) {
+    const imgs = {}
+    for await (const item of imgNames) {
       // 读取目标点资源
       const targetBase64 = await imageToBase64(`./images/${item}`)
       // 读取目标点特征
@@ -160,6 +166,7 @@ function App(): JSX.Element {
       // 获取与目标点位的距离和角度
       const { distance, score } = await getImagePosition(targetBase64, tarPosition, curPosition)
 
+      imgs[item] = targetBase64
       result[item] = { distance, score }
     }
 
@@ -172,16 +179,15 @@ function App(): JSX.Element {
     })
 
     const imgType = bsetImg.split('-')
+    const step = +imgType[1].split('.')[0]
+    pathIndexRef.current = step
 
+    setImgPaths(imgs)
     setPathType(imgType[0] as IPathType)
-    pathIndexRef.current = +imgType[1].split('.')[0]
   }
 
   /** 无限循环执行脚本 */
   const loop = async () => {
-    // 读取本地路径数据
-    const paths = await window.api.readdir('images/attack')
-
     while (!stopLoopRef.current) {
       // 判断是否在战斗中
       const isAttact = await isPlayerAttact()
@@ -216,9 +222,12 @@ function App(): JSX.Element {
         continue
       }
 
-      if (pathIndexRef.current < paths.length) {
+      // 判断当前所在路径
+      const currentPathPoint = Object.keys(imgPaths).filter((v) => v.includes(pathType))
+
+      if (pathIndexRef.current < currentPathPoint.length) {
         // 向下一坐标移动
-        await moveToTarget(`./images/attack/${pathIndexRef.current}.png`)
+        await moveToTarget(pathIndexRef.current)
       } else {
         stopLoop()
       }
@@ -228,13 +237,13 @@ function App(): JSX.Element {
   }
 
   /** 向目标路径点移动 */
-  const moveToTarget = async (path: string) => {
+  const moveToTarget = async (target: number) => {
     // 当前雷达信息
     const curPosition = await getCurPosition()
     // 人物当前视角角度
-    const { angle: personAngle } = await processImages(curPosition.centerImg, imgDict.arrow)
+    const { angle: personAngle } = await processImages(curPosition.centerImg, imgTemplate.arrow)
     // 读取目标点资源
-    const targetBase64 = await imageToBase64(path)
+    const targetBase64 = imgPaths[`${pathType}-${target}.png`]
     // 读取目标点特征
     const tarPosition = await getImageFourFeature(targetBase64)
     // 获取与目标点位的距离和角度
@@ -265,12 +274,13 @@ function App(): JSX.Element {
       }
     }
     await playerForward()
+
+    saveLog(`向路径点--${pathIndexRef.current}移动`)
+
     if (distance <= 1) {
       await playerStop()
       pathIndexRef.current = pathIndexRef.current + 1
     }
-
-    saveLog(`向路径点移动`)
 
     saveLog(`修正视角：${needAngle}° 距目标点距离：${distance} `)
   }
@@ -300,7 +310,7 @@ function App(): JSX.Element {
       const curImageData = await grabRegion(50, 50, 1600, 780)
       const curBase64 = await imageDataToBase64(curImageData)
       // 计算是否找到怪物
-      const { center: targetPoint, score } = await ImageInfoInParent(curBase64, imgDict.blood)
+      const { center: targetPoint, score } = await ImageInfoInParent(curBase64, imgTemplate.blood)
 
       if (score > 0.8) {
         return targetPoint
