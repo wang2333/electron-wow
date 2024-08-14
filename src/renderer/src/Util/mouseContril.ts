@@ -5,8 +5,8 @@ import { Key } from './Key'
 const { mouse, straightTo: nutStraightTo, screen, Region, keyboard } = window.nut
 
 keyboard.config.autoDelayMs = 0 // 设置键盘按键间隔（可选）
-mouse.config.autoDelayMs = 100 // 设置鼠标点击间隔（可选）
-mouse.config.mouseSpeed = 100000 // 设置鼠标移动速度（可选）
+mouse.config.autoDelayMs = 0 // 设置鼠标点击间隔（可选）
+mouse.config.mouseSpeed = 5000 // 设置鼠标移动速度（可选）
 
 enum Button {
   LEFT = 0,
@@ -141,13 +141,32 @@ export const pressKeyLong = async (key: Key, duration: number) => {
 
 /** 转向 */
 export const turning = async (range: number) => {
+  const distance = GAME_POSITION.x - DEGREES_PER_PIXEL * range
   // 移动到中心点
   await mouse.setPosition({ x: GAME_POSITION.x, y: GAME_POSITION.y })
-  const distance = GAME_POSITION.x - DEGREES_PER_PIXEL * range
   // // 按下右键
   await mouse.pressButton(Button.RIGHT)
   // // 移动到结束位置
-  await mouse.move(straightTo({ x: distance, y: GAME_POSITION.y }))
+  // await mouse.move(straightTo({ x: distance, y: GAME_POSITION.y }))
+  await mouse.move([{ x: distance, y: GAME_POSITION.y }])
   // // 释放右键
   await mouse.releaseButton(Button.RIGHT)
+  // await mouse.setPosition({ x: GAME_POSITION.x, y: GAME_POSITION.y })
+  // await sleep(300)
+  // // // 按下右键
+  // await mouse.pressButton(Button.RIGHT)
+  // // // 移动到结束位置
+  // // await mouse.move(straightTo({ x: distance, y: GAME_POSITION.y }))
+  // await mouse.move([{ x: distance, y: GAME_POSITION.y }])
+  // // // 释放右键
+  // await mouse.releaseButton(Button.RIGHT)
+}
+
+export const sleep = async (time: number) => {
+  // 生成一个0.8到1之间的随机数
+  const randomMultiplier = 0.8 + Math.random() * 0.2
+  // 计算延迟时间
+  const randomDelay = time * randomMultiplier
+
+  await new Promise((resolve) => setTimeout(resolve, randomDelay))
 }

@@ -21,6 +21,7 @@ import {
   pressKey,
   pressKeyDown,
   pressKeyUp,
+  sleep,
   turning
 } from '../Util/mouseContril'
 
@@ -44,7 +45,7 @@ function Monster(): JSX.Element {
   // 人物是否在移动中
   const isMoveRef = useRef(false)
   // 找到怪物标记
-  const isFindMonsterRef = useRef(false)
+  const isMoveMonsterRef = useRef(false)
 
   // 保存图片计数
   const [imgNum, setImgNum] = useState(0)
@@ -132,6 +133,7 @@ function Monster(): JSX.Element {
 
   /** 脚本开始 */
   const startLoop = async () => {
+    saveLog(`脚本开始运行`)
     stopLoopRef.current = false
     loop() // Start the loop
   }
@@ -141,7 +143,9 @@ function Monster(): JSX.Element {
     stopLoopRef.current = true
     pathIndexRef.current = 0
 
+    await sleep(500)
     await playerStop()
+    saveLog(`脚本结束运行`)
   }
 
   /** 重置 */
@@ -193,6 +197,7 @@ function Monster(): JSX.Element {
       // 判断是否在战斗中
       const isAttact = await isPlayerAttact()
       if (isAttact) {
+        isMoveMonsterRef.current = false
         isAttactRef.current = true
         // 在战斗中，停止移动
         await playerStop()
@@ -206,25 +211,22 @@ function Monster(): JSX.Element {
       // 战斗结束时，取消选中怪物标记并进行拾取
       if (isAttactRef.current) {
         isAttactRef.current = false
-        isFindMonsterRef.current = false
-        // await clickInRect(700, 300, 1300, 500, 50, 50)
+        isMoveMonsterRef.current = false
+        await clickInRect(570, 570, 530, 300, 50, 50)
       }
 
-      let monsterPosition: boolean | Point = isFindMonsterRef.current
-
+      const monsterPosition = await isFindMonster()
       // 没有选中怪物时，寻找怪物
-      if (!monsterPosition) {
-        monsterPosition = await isFindMonster()
-        isFindMonsterRef.current = !!monsterPosition
+      if (monsterPosition) {
+        isMoveMonsterRef.current = true
+        saveLog(`找到怪物，向怪物移动`)
       }
 
       if (monsterPosition && typeof monsterPosition !== 'boolean') {
-        isFindMonsterRef.current = true
         // 向怪物移动
         await moveToMonster(monsterPosition)
         // 尝试攻击怪物
         await pressKey(Key.Q)
-
         saveLog(`尝试向怪物发起攻击`)
         continue
       }
@@ -236,10 +238,11 @@ function Monster(): JSX.Element {
         // 向下一坐标移动
         await moveToTarget(pathIndexRef.current)
       } else {
-        stopLoop()
+        // stopLoop()
+        pathIndexRef.current = 0
       }
 
-      // await new Promise((resolve) => setTimeout(resolve, 500)) // 1000 ms delay
+      // await sleep(500)
     }
   }
 
@@ -272,19 +275,15 @@ function Monster(): JSX.Element {
     }
 
     // 调整视角
+    needAngle = +needAngle.toFixed(2)
+
     if (Math.abs(needAngle) > 10) {
-      // const time = Math.abs(needAngle) * DEGREES_PER_MILLISEOND
       await playerStop()
-      await turning(needAngle)
-      // if (needAngle > 0) {
-      //   await pressKeyLong(Key.D, time)
-      // } else {
-      //   await pressKeyLong(Key.A, time)
-      // }
+      await turning(-needAngle)
     }
     await playerForward()
     // 到达目标点位后，停止移动
-    if (distance < 2) {
+    if (distance < 1.5) {
       await playerStop()
       pathIndexRef.current = pathIndexRef.current + 1
     }
@@ -311,7 +310,9 @@ function Monster(): JSX.Element {
   /** 是否找到怪物 */
   const isFindMonster = async () => {
     // 切换怪物
-    await pressKey(Key.Tab)
+    if (!isMoveMonsterRef.current) {
+      await pressKey(Key.Tab)
+    }
     // 判断怪物是否选中
     const color = await colorAt({ x: COLOR_DICT.hasMonster[0], y: COLOR_DICT.hasMonster[1] })
     if (color.includes(COLOR_DICT.hasMonster[2])) {
@@ -320,7 +321,6 @@ function Monster(): JSX.Element {
       const curBase64 = await imageDataToBase64(curImageData)
       // 计算是否找到怪物
       const { center: targetPoint, score } = await ImageInfoInParent(curBase64, imgTemplate.blood)
-
       if (score > 0.8) {
         return targetPoint
       }
@@ -334,14 +334,8 @@ function Monster(): JSX.Element {
     const needAngle = calculateAngle(PERSON_CENTER, point)
 
     if (Math.abs(needAngle) > 10) {
-      // const time = Math.abs(needAngle) * DEGREES_PER_MILLISEOND
       await playerStop()
-      await turning(needAngle * -1)
-      // if (needAngle > 0) {
-      //   await pressKeyLong(Key.A, time)
-      // } else {
-      //   await pressKeyLong(Key.D, time)
-      // }
+      await turning(needAngle)
     }
     await playerForward()
   }
@@ -372,10 +366,13 @@ function Monster(): JSX.Element {
   }
 
   const test = async () => {
-    await clickInRect(1000, 250, 500, 100, 100, 100)
+    // await clickInRect(1000, 250, 500, 100, 100, 100)
     // await clickInSpiral(700, 300, 200, 50, 10)
     // await clickInCircle(700, 300, 200, 10)
     // await turning(90)
+    // await sleep(1000)
+    // await turning(-90)
+    await clickInRect(570, 570, 530, 300, 50, 50)
   }
 
   return (
