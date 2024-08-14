@@ -2,20 +2,25 @@ type ColorArray = [number, number, string]
 interface IColorDict {
   playerAttack: ColorArray
   hasMonster: ColorArray
+  monsteAttack: ColorArray
 }
 
-/** 整圈旋转耗时 */
-export const Time_TO_COMPLETE_FULL_ROTATION = 2000
-
 /** 每毫秒旋转角度 */
-export const DEGREES_PER_MILLISEOND = Time_TO_COMPLETE_FULL_ROTATION / 360
+export const DEGREES_PER_MILLISEOND = 2000 / 360
+
+/** 右键每像素旋转角度 */
+export const DEGREES_PER_PIXEL = 720 / 360
 
 /** 人物中心点 */
-export const PERSON_POSITION = {
+export const PERSON_CENTER = {
   x: 850,
   y: 800
 }
-
+/** 游戏画面中心点 */
+export const GAME_POSITION = {
+  x: 600,
+  y: 600
+}
 /** 雷达箭头模板路径 */
 export const ARROW_IMG_PATH = window.api.getResourcePath('resources/images/arrow.png')
 
@@ -24,6 +29,7 @@ export const BLOOD_IMG_PATH = window.api.getResourcePath('resources/images/blood
 
 /** 事件对应的坐标和色值 */
 export const COLOR_DICT: IColorDict = {
-  playerAttack: [345, 1084, '#ffe66c'],
-  hasMonster: [1350, 1050, '#80df27']
+  hasMonster: [1350, 1050, '#80df27'],
+  monsteAttack: [1221, 1074, '#ca0000'],
+  playerAttack: [345, 1084, '#ffe66c']
 }

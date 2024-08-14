@@ -1,10 +1,18 @@
 import { Point } from '@nut-tree/nut-js'
+import { DEGREES_PER_PIXEL, GAME_POSITION } from '@renderer/constants'
 import { Key } from './Key'
 
 const { mouse, straightTo: nutStraightTo, screen, Region, keyboard } = window.nut
 
-keyboard.config.autoDelayMs = 0
-mouse.config.autoDelayMs = 50
+keyboard.config.autoDelayMs = 0 // 设置键盘按键间隔（可选）
+mouse.config.autoDelayMs = 50 // 设置鼠标点击间隔（可选）
+mouse.config.mouseSpeed = 50000 // 设置鼠标移动速度（可选）
+
+enum Button {
+  LEFT = 0,
+  MIDDLE = 1,
+  RIGHT = 2
+}
 
 export const straightTo = (position: Point | Promise<Point>) => {
   return nutStraightTo(position)
@@ -72,11 +80,14 @@ export const clickInSpiral = async (
 export const clickInRect = async (
   x1: number,
   y1: number,
-  x2: number,
-  y2: number,
+  width: number,
+  height: number,
   stepX: number,
   stepY: number
 ) => {
+  const x2 = x1 + width
+  const y2 = y1 + height
+
   for (let x = x1; x <= x2; x += stepX) {
     for (let y = y1; y <= y2; y += stepY) {
       // 移动到目标位置并点击
@@ -122,4 +133,17 @@ export const pressKeyLong = async (key: Key, duration: number) => {
   await keyboard.pressKey(key)
   await new Promise((resolve) => setTimeout(resolve, duration))
   await keyboard.releaseKey(key)
+}
+
+/** 转向 */
+export const turning = async (range: number) => {
+  // 移动到中心点
+  await mouse.setPosition({ x: GAME_POSITION.x, y: GAME_POSITION.y })
+  const distance = GAME_POSITION.x - DEGREES_PER_PIXEL * range
+  // // 按下右键
+  await mouse.pressButton(Button.LEFT)
+  // // 移动到结束位置
+  await mouse.move(straightTo({ x: distance, y: GAME_POSITION.y }))
+  // // 释放右键
+  await mouse.releaseButton(Button.LEFT)
 }

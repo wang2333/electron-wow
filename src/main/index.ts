@@ -41,7 +41,7 @@ function createWindow(): void {
 
   mainWindow.webContents.openDevTools()
   /** 控制窗口置顶 */
-  mainWindow.setAlwaysOnTop(true, 'floating')
+  // mainWindow.setAlwaysOnTop(true, 'floating')
 }
 
 // This method will be called when Electron has finished

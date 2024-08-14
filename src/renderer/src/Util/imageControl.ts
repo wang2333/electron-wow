@@ -130,7 +130,7 @@ export const getImagePosition = async (
   const mat = await base64ToMat(targetBase64)
 
   // 转为灰度图像
-  // cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY)
+  cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY)
 
   // 初始化最佳匹配结果
   let bestMatch = { distance: Infinity, angle: 0, score: -1 }
@@ -155,20 +155,26 @@ export const getImagePosition = async (
 
   // 返回最佳匹配的距离和角度
   return {
-    distance: bestMatch.distance,
-    angle: bestMatch.angle,
+    distance: +bestMatch.distance.toFixed(2),
+    angle: +bestMatch.angle.toFixed(2),
     score: bestMatch.score === 1 ? 0 : bestMatch.score
   }
 }
 
 /** 进行模板匹配并绘制匹配框和连线 */
 const matchAndDraw = async (paneMat: Mat, currentImg: string, targetImg: string) => {
-  const curentMat = await base64ToMat(currentImg)
-  const targetMat = await base64ToMat(targetImg)
+  const [curentMat, targetMat] = await Promise.all([
+    base64ToMat(currentImg),
+    base64ToMat(targetImg)
+  ])
 
   // 转为灰度图像
-  // cv.cvtColor(curentMat, curentMat, cv.COLOR_RGBA2GRAY)
-  // cv.cvtColor(targetMat, targetMat, cv.COLOR_RGBA2GRAY)
+  cv.cvtColor(curentMat, curentMat, cv.COLOR_RGBA2GRAY)
+  cv.cvtColor(targetMat, targetMat, cv.COLOR_RGBA2GRAY)
+
+  // 对图像进行二值化处理
+  cv.threshold(curentMat, curentMat, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+  cv.threshold(targetMat, targetMat, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
 
   // 进行模板匹配
   const resultCurrent = new cv.Mat()
@@ -243,12 +249,15 @@ export const getImageFourFeature = async (base64: string) => {
 /** 旋转找图 */
 export const processImages = async (queryImg: string, templateImg: string) => {
   // 1. 加载模板和目标图像
-  const src = await base64ToMat(queryImg)
-  const template = await base64ToMat(templateImg)
+  const [src, template] = await Promise.all([base64ToMat(queryImg), base64ToMat(templateImg)])
 
   // 转为灰度图像
   cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY)
   cv.cvtColor(template, template, cv.COLOR_RGBA2GRAY)
+
+  // 对图像进行二值化处理
+  cv.threshold(src, src, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+  cv.threshold(template, template, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
 
   let bestMatchVal = -1
   let bestAngle = 0
@@ -310,13 +319,19 @@ export const processImages = async (queryImg: string, templateImg: string) => {
 /** 计算父图中目标图片的位置 */
 export const ImageInfoInParent = async (largeBase64: string, smallBase64: string) => {
   // 读取大图并转换为OpenCV矩阵
-  const largeMat = await base64ToMat(largeBase64)
   // 加载小图并转换为OpenCV矩阵
-  const smallMat = await base64ToMat(smallBase64)
+  const [largeMat, smallMat] = await Promise.all([
+    base64ToMat(largeBase64),
+    base64ToMat(smallBase64)
+  ])
 
   // 转为灰度图像
   cv.cvtColor(largeMat, largeMat, cv.COLOR_RGBA2GRAY)
   cv.cvtColor(smallMat, smallMat, cv.COLOR_RGBA2GRAY)
+
+  // 对图像进行二值化处理
+  cv.threshold(largeMat, largeMat, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+  cv.threshold(smallMat, smallMat, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
 
   // 创建矩阵以存储匹配结果
   const result = new cv.Mat()
@@ -386,6 +401,9 @@ export const recognize = async (base64: string) => {
 
   // 将图像转换为灰度图
   cv.cvtColor(mat, dst, cv.COLOR_RGBA2GRAY)
+
+  // 对图像进行二值化处理
+  cv.threshold(dst, dst, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
 
   // 将结果显示在canvas中
   cv.imshow('canvasOutput', dst)
