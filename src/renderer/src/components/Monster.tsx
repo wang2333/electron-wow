@@ -1,13 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { Point } from '@nut-tree/nut-js'
-import {
-  ARROW_IMG_PATH,
-  BLOOD_IMG_PATH,
-  COLOR_DICT,
-  DEGREES_PER_MILLISEOND,
-  PERSON_CENTER
-} from '../constants'
+import { ARROW_IMG_PATH, BLOOD_IMG_PATH, COLOR_DICT, PERSON_CENTER } from '../constants'
 import {
   base64ToMat,
   calculateAngle,
@@ -21,6 +15,7 @@ import {
 } from '../Util/imageControl'
 import { Key } from '../Util/Key'
 import {
+  clickInRect,
   colorAt,
   grabRegion,
   pressKey,
@@ -377,10 +372,10 @@ function Monster(): JSX.Element {
   }
 
   const test = async () => {
-    // await clickInRect(520, 570, 1235, 930, 100, 150)
+    await clickInRect(1000, 250, 500, 100, 100, 100)
     // await clickInSpiral(700, 300, 200, 50, 10)
     // await clickInCircle(700, 300, 200, 10)
-    await turning(90)
+    // await turning(90)
   }
 
   return (

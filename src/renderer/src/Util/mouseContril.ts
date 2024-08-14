@@ -5,8 +5,8 @@ import { Key } from './Key'
 const { mouse, straightTo: nutStraightTo, screen, Region, keyboard } = window.nut
 
 keyboard.config.autoDelayMs = 0 // 设置键盘按键间隔（可选）
-mouse.config.autoDelayMs = 50 // 设置鼠标点击间隔（可选）
-mouse.config.mouseSpeed = 50000 // 设置鼠标移动速度（可选）
+mouse.config.autoDelayMs = 100 // 设置鼠标点击间隔（可选）
+mouse.config.mouseSpeed = 100000 // 设置鼠标移动速度（可选）
 
 enum Button {
   LEFT = 0,
@@ -35,19 +35,23 @@ export const grabRegion = async (x: number, y: number, width: number, height: nu
 }
 
 /** 移动鼠标 */
-export const mouseMove = async (position: Point[] | Promise<Point[]>) => {
-  return await mouse.move(position)
+export const mouseMove = async (position: Point | Promise<Point>) => {
+  return await mouse.move(straightTo(position))
 }
 
 /** 单击右键 */
-export const mouseRightClick = async (position: Point[] | Promise<Point[]>) => {
-  await mouseMove(position)
+export const mouseRightClick = async (position?: Point | Promise<Point>) => {
+  if (position) {
+    await mouseMove(position)
+  }
   await mouse.rightClick()
 }
 
 /** 单击左键 */
-export const mouseLeftClick = async (position: Point[] | Promise<Point[]>) => {
-  await mouseMove(position)
+export const mouseLeftClick = async (position?: Point | Promise<Point>) => {
+  if (position) {
+    await mouseMove(position)
+  }
   await mouse.leftClick()
 }
 
@@ -68,7 +72,7 @@ export const clickInSpiral = async (
     const y = cy + currentRadius * Math.sin(angle * (Math.PI / 180))
 
     // 移动鼠标到计算的点并点击
-    await mouseRightClick([{ x, y }])
+    await mouseRightClick({ x, y })
 
     // 更新角度和半径
     angle += angleStep
@@ -91,7 +95,7 @@ export const clickInRect = async (
   for (let x = x1; x <= x2; x += stepX) {
     for (let y = y1; y <= y2; y += stepY) {
       // 移动到目标位置并点击
-      await mouseRightClick([{ x, y }])
+      await mouseRightClick({ x, y })
     }
   }
 }
@@ -108,7 +112,7 @@ export const clickInCircle = async (cx: number, cy: number, r: number, step: num
     const y = cy + yOffset
 
     // 移动到目标位置并点击
-    await mouseRightClick([{ x, y }])
+    await mouseRightClick({ x, y })
   }
 }
 
@@ -141,9 +145,9 @@ export const turning = async (range: number) => {
   await mouse.setPosition({ x: GAME_POSITION.x, y: GAME_POSITION.y })
   const distance = GAME_POSITION.x - DEGREES_PER_PIXEL * range
   // // 按下右键
-  await mouse.pressButton(Button.LEFT)
+  await mouse.pressButton(Button.RIGHT)
   // // 移动到结束位置
   await mouse.move(straightTo({ x: distance, y: GAME_POSITION.y }))
   // // 释放右键
-  await mouse.releaseButton(Button.LEFT)
+  await mouse.releaseButton(Button.RIGHT)
 }

@@ -1,16 +1,18 @@
-import { Key } from '@renderer/Util/Key'
-import { colorAt, pressKey } from '@renderer/Util/mouseContril'
 import { useRef, useState } from 'react'
 
+import { colorAt, mouseLeftClick, mouseRightClick } from '@renderer/Util/mouseContril'
+
 const Fish: React.FC = () => {
-  const [key1, setKey1] = useState('1')
-  const [key2, setKey2] = useState('2')
+  const [key1, setKey1] = useState('F')
+  const [key2, setKey2] = useState('G')
   const [micX, setMicX] = useState(500)
   const [micY, setMicY] = useState(300)
   const [color, setColor] = useState('#0067c0')
 
   // 脚本循环开关
   const stopLoopRef = useRef(false)
+  // 标记是否已经甩杆
+  const isStartRef = useRef(false)
 
   /** 脚本开始 */
   const startLoop = async () => {
@@ -34,32 +36,44 @@ const Fish: React.FC = () => {
   /** 无限循环执行脚本 */
   const loop = async () => {
     while (!stopLoopRef.current) {
-      await pressKey(Key[key1])
+      if (isStartRef.current) {
+        const c = await colorAt({ x: micX, y: micY })
+        if (c.includes(color)) {
+          // await pressKey(Key[key2])
+          await mouseRightClick()
+          await sleep(1500)
+          isStartRef.current = false
+        }
+      } else {
+        // await pressKey(Key[key1])
+        await mouseLeftClick()
 
-      const c = await colorAt({ x: micX, y: micY })
-      if (c.includes(color)) {
-        console.log('object :>> ', '鱼上钩')
-        await pressKey(Key[key2])
         await sleep(1500)
+        isStartRef.current = true
       }
-      await sleep(500)
+      sleep(500)
     }
   }
 
   const sleep = async (time: number) => {
-    await new Promise((resolve) => setTimeout(resolve, time))
+    // 生成一个0.8到1之间的随机数
+    const randomMultiplier = 0.8 + Math.random() * 0.2
+    // 计算延迟时间
+    const randomDelay = time * randomMultiplier
+
+    await new Promise((resolve) => setTimeout(resolve, randomDelay))
   }
   return (
     <div className={'fish'}>
       <div className="config">
-        <div className="item">
+        {/* <div className="item">
           <span>甩干：</span>
           <input value={key1} placeholder={'甩干'} onChange={(e) => setKey1(e.target.value)} />
         </div>
         <div className="item">
           <span>收杆：</span>
           <input value={key2} placeholder={'收杆'} onChange={(e) => setKey2(e.target.value)} />
-        </div>
+        </div> */}
 
         <div className="item">
           <span>音量坐标：</span>
