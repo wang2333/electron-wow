@@ -248,16 +248,21 @@ function Monster(): JSX.Element {
 
   /** 向目标路径点移动 */
   const moveToTarget = async (target: number) => {
-    // 当前雷达信息
-    const curPosition = await getCurPosition()
-    // 人物当前视角角度
-    const { angle: personAngle } = await processImages(curPosition.centerImg, imgTemplate.arrow)
     // 读取目标点资源
     const targetBase64 = imgPaths[`${pathType}-${target}.png`]
-    // 读取目标点特征
-    const tarPosition = await getImageFourFeature(targetBase64)
-    // 获取与目标点位的距离和角度
-    const { distance, angle } = await getImagePosition(targetBase64, tarPosition, curPosition)
+    const [curPosition, tarPosition] = await Promise.all([
+      // 当前雷达信息
+      getCurPosition(),
+      // 读取目标点特征
+      getImageFourFeature(targetBase64)
+    ])
+
+    const [{ distance, angle }, { angle: personAngle }] = await Promise.all([
+      // 获取与目标点位的距离和角度
+      getImagePosition(targetBase64, tarPosition, curPosition),
+      // 人物当前视角角度
+      processImages(curPosition.centerImg, imgTemplate.arrow)
+    ])
 
     // 计算人物视角应该偏移的角度
     let needAngle = 0
