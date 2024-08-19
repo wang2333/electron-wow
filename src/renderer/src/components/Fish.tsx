@@ -1,14 +1,17 @@
 import { useRef, useState } from 'react'
 
-import { colorAt, mouseLeftClick, mouseRightClick, pressKey } from '@renderer/Util/mouseContril'
 import { Key } from '@renderer/Util/Key'
+import { colorAt, pressKey } from '@renderer/Util/mouseContril'
 
 const Fish: React.FC = () => {
-  const [key1, setKey1] = useState('F')
+  const [key1, setKey1] = useState('J')
   const [key2, setKey2] = useState('Q')
-  const [micX, setMicX] = useState(1730)
-  const [micY, setMicY] = useState(161)
-  const [color, setColor] = useState('#1d6978')
+  // const [micX, setMicX] = useState(1730)
+  // const [micY, setMicY] = useState(161)
+  // const [color, setColor] = useState('#1d6978')
+  const [micX, setMicX] = useState(480)
+  const [micY, setMicY] = useState(355)
+  const [color, setColor] = useState('#ffffff')
 
   // 脚本循环开关
   const stopLoopRef = useRef(false)
@@ -19,10 +22,13 @@ const Fish: React.FC = () => {
 
   /** 脚本开始 */
   const startLoop = async () => {
+    const c = await colorAt({ x: micX, y: micY })
+    console.log('👻 ~ c:', c)
+
     stopLoopRef.current = false
     setTimeout(() => {
       loop()
-    }, 500)
+    }, 1000)
   }
 
   /** 脚本结束 */
@@ -48,7 +54,8 @@ const Fish: React.FC = () => {
 
       if (isStartRef.current) {
         const c = await colorAt({ x: micX, y: micY })
-        if (c.includes(color)) {
+        console.log('👻 ~ c:', c)
+        if (!c.includes(color)) {
           checkNumRef.current = checkNumRef.current + 1
         }
         if (checkNumRef.current >= 2) {
@@ -75,14 +82,14 @@ const Fish: React.FC = () => {
   return (
     <div className={'fish'}>
       <div className="config">
-        {/* <div className="item">
-          <span>甩干：</span>
-          <input value={key1} placeholder={'甩干'} onChange={(e) => setKey1(e.target.value)} />
-        </div>
         <div className="item">
           <span>收杆：</span>
-          <input value={key2} placeholder={'收杆'} onChange={(e) => setKey2(e.target.value)} />
-        </div> */}
+          <input value={key1} placeholder={'收杆'} onChange={(e) => setKey1(e.target.value)} />
+        </div>
+        <div className="item">
+          <span>甩杆：</span>
+          <input value={key2} placeholder={'甩杆'} onChange={(e) => setKey2(e.target.value)} />
+        </div>
 
         <div className="item">
           <span>音量坐标：</span>
