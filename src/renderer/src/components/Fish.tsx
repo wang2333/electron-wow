@@ -1,18 +1,21 @@
 import { useRef, useState } from 'react'
 
-import { colorAt, mouseLeftClick, mouseRightClick } from '@renderer/Util/mouseContril'
+import { colorAt, mouseLeftClick, mouseRightClick, pressKey } from '@renderer/Util/mouseContril'
+import { Key } from '@renderer/Util/Key'
 
 const Fish: React.FC = () => {
   const [key1, setKey1] = useState('F')
-  const [key2, setKey2] = useState('G')
-  const [micX, setMicX] = useState(500)
-  const [micY, setMicY] = useState(300)
-  const [color, setColor] = useState('#0067c0')
+  const [key2, setKey2] = useState('Q')
+  const [micX, setMicX] = useState(1730)
+  const [micY, setMicY] = useState(161)
+  const [color, setColor] = useState('#1d6978')
 
   // 脚本循环开关
   const stopLoopRef = useRef(false)
   // 标记是否已经甩杆
   const isStartRef = useRef(false)
+  const startTimeRef = useRef(0)
+  const checkNumRef = useRef(0)
 
   /** 脚本开始 */
   const startLoop = async () => {
@@ -36,22 +39,28 @@ const Fish: React.FC = () => {
   /** 无限循环执行脚本 */
   const loop = async () => {
     while (!stopLoopRef.current) {
+      if (!isStartRef.current || new Date().getTime() - startTimeRef.current > 17 * 1000) {
+        await pressKey(Key[key2])
+        await sleep(2000)
+        isStartRef.current = true
+        startTimeRef.current = new Date().getTime()
+      }
+
       if (isStartRef.current) {
         const c = await colorAt({ x: micX, y: micY })
         if (c.includes(color)) {
-          // await pressKey(Key[key2])
-          await mouseRightClick()
-          await sleep(1500)
-          isStartRef.current = false
+          checkNumRef.current = checkNumRef.current + 1
         }
-      } else {
-        // await pressKey(Key[key1])
-        await mouseLeftClick()
-
-        await sleep(1500)
-        isStartRef.current = true
+        if (checkNumRef.current >= 2) {
+          await sleep(200)
+          await pressKey(Key[key1])
+          await sleep(2000)
+          isStartRef.current = false
+          checkNumRef.current = 0
+        }
       }
-      sleep(500)
+
+      await sleep(50)
     }
   }
 
