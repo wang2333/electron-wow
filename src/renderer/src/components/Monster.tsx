@@ -50,11 +50,11 @@ function Monster(): JSX.Element {
   // 保存图片计数
   const [imgNum, setImgNum] = useState(0)
   // 雷达起点
-  const [startX, setStartX] = useState(1470)
-  const [startY, setStartY] = useState(85)
+  const [startX, setStartX] = useState(1460)
+  const [startY, setStartY] = useState(74)
   // 雷达尺寸
-  const [width, setWidth] = useState(216)
-  const [height, setHeight] = useState(216)
+  const [width, setWidth] = useState(212)
+  const [height, setHeight] = useState(212)
 
   // 录制路径类型
   const [pathType, setPathType] = useState<IPathType>('monster')
@@ -195,41 +195,41 @@ function Monster(): JSX.Element {
   const loop = async () => {
     while (!stopLoopRef.current) {
       // 判断是否在战斗中
-      const isAttact = await isPlayerAttact()
-      if (isAttact) {
-        isMoveMonsterRef.current = false
-        isAttactRef.current = true
-        // 在战斗中，停止移动
-        await playerStop()
-        // 开始战斗循环
-        await pressKey(Key.Q)
+      // const isAttact = await isPlayerAttact()
+      // if (isAttact) {
+      //   isMoveMonsterRef.current = false
+      //   isAttactRef.current = true
+      //   // 在战斗中，停止移动
+      //   await playerStop()
+      //   // 开始战斗循环
+      //   await pressKey(Key.Q)
 
-        saveLog(`人物战斗中`)
-        continue
-      }
+      //   saveLog(`人物战斗中`)
+      //   continue
+      // }
 
-      // 战斗结束时，取消选中怪物标记并进行拾取
-      if (isAttactRef.current) {
-        isAttactRef.current = false
-        isMoveMonsterRef.current = false
-        await clickInRect(570, 570, 530, 300, 50, 50)
-      }
+      // // 战斗结束时，取消选中怪物标记并进行拾取
+      // if (isAttactRef.current) {
+      //   isAttactRef.current = false
+      //   isMoveMonsterRef.current = false
+      //   await clickInRect(570, 570, 530, 300, 50, 50)
+      // }
 
-      const monsterPosition = await isFindMonster()
-      // 没有选中怪物时，寻找怪物
-      if (monsterPosition) {
-        isMoveMonsterRef.current = true
-        saveLog(`找到怪物，向怪物移动`)
-      }
+      // const monsterPosition = await isFindMonster()
+      // // 没有选中怪物时，寻找怪物
+      // if (monsterPosition) {
+      //   isMoveMonsterRef.current = true
+      //   saveLog(`找到怪物，向怪物移动`)
+      // }
 
-      if (monsterPosition && typeof monsterPosition !== 'boolean') {
-        // 向怪物移动
-        await moveToMonster(monsterPosition)
-        // 尝试攻击怪物
-        await pressKey(Key.Q)
-        saveLog(`尝试向怪物发起攻击`)
-        continue
-      }
+      // if (monsterPosition && typeof monsterPosition !== 'boolean') {
+      //   // 向怪物移动
+      //   await moveToMonster(monsterPosition)
+      //   // 尝试攻击怪物
+      //   await pressKey(Key.Q)
+      //   saveLog(`尝试向怪物发起攻击`)
+      //   continue
+      // }
 
       // 判断当前所在路径
       const currentPathPoint = Object.keys(imgPaths).filter((v) => v.includes(pathType))
@@ -242,7 +242,7 @@ function Monster(): JSX.Element {
         pathIndexRef.current = 0
       }
 
-      // await sleep(500)
+      await sleep(300)
     }
   }
 
@@ -256,7 +256,6 @@ function Monster(): JSX.Element {
       // 读取目标点特征
       getImageFourFeature(targetBase64)
     ])
-
     const [{ distance, angle }, { angle: personAngle }] = await Promise.all([
       // 获取与目标点位的距离和角度
       getImagePosition(targetBase64, tarPosition, curPosition),
@@ -272,14 +271,14 @@ function Monster(): JSX.Element {
       needAngle = (angle - personAngle) * -1
     }
 
-    // 角度修正,计算最低旋转角度
+    // 角度修正, 计算最低旋转角度
     if (needAngle < -180) {
       needAngle = needAngle + 360
     } else if (needAngle > 180) {
       needAngle = needAngle - 360
     }
 
-    // 调整视角
+    // // 调整视角
     needAngle = +needAngle.toFixed(2)
 
     if (Math.abs(needAngle) > 10) {
@@ -371,13 +370,15 @@ function Monster(): JSX.Element {
   }
 
   const test = async () => {
+    await sleep(2000)
+
     // await clickInRect(1000, 250, 500, 100, 100, 100)
     // await clickInSpiral(700, 300, 200, 50, 10)
     // await clickInCircle(700, 300, 200, 10)
-    // await turning(90)
+    await turning(180)
     // await sleep(1000)
     // await turning(-90)
-    await clickInRect(570, 570, 530, 300, 50, 50)
+    // await clickInRect(570, 570, 530, 300, 50, 50)
   }
 
   return (

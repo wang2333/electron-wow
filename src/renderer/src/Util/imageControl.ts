@@ -5,7 +5,7 @@ const cv = window.cv
 const Tesseract = window.tesseract
 
 // 定义特征截图的大小
-const CROP_SIZE = 50
+const CROP_SIZE = 45
 
 /** base64图片生成img节点 */
 export const base64ToImage = async (base64: string): Promise<HTMLImageElement> => {
@@ -168,13 +168,13 @@ const matchAndDraw = async (paneMat: Mat, currentImg: string, targetImg: string)
     base64ToMat(targetImg)
   ])
 
-  // 转为灰度图像
+  // // 转为灰度图像
   cv.cvtColor(curentMat, curentMat, cv.COLOR_RGBA2GRAY)
   cv.cvtColor(targetMat, targetMat, cv.COLOR_RGBA2GRAY)
 
-  // 对图像进行二值化处理
-  cv.threshold(curentMat, curentMat, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
-  cv.threshold(targetMat, targetMat, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+  // // 对图像进行二值化处理
+  // cv.threshold(curentMat, curentMat, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+  // cv.threshold(targetMat, targetMat, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
 
   // 进行模板匹配
   const resultCurrent = new cv.Mat()
@@ -196,7 +196,7 @@ const matchAndDraw = async (paneMat: Mat, currentImg: string, targetImg: string)
   const angle = calculateAngle(centerCurrent, centerTarget).toFixed(2)
 
   // 获取匹配度（分数）
-  const score = cv.minMaxLoc(resultTarget, mask).maxVal.toFixed(2)
+  const score = cv.minMaxLoc(resultTarget, mask).maxVal
 
   // 绘制匹配框和连线
   drawRectangle(paneMat, maxPointCurrent, curentMat, new cv.Scalar(255, 0, 0, 255)) // 红色框表示 current
@@ -255,16 +255,16 @@ export const processImages = async (queryImg: string, templateImg: string) => {
   cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY)
   cv.cvtColor(template, template, cv.COLOR_RGBA2GRAY)
 
-  // 对图像进行二值化处理
-  cv.threshold(src, src, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
-  cv.threshold(template, template, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+  // // 对图像进行二值化处理
+  // cv.threshold(src, src, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+  // cv.threshold(template, template, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
 
   let bestMatchVal = -1
   let bestAngle = 0
   let bestLocation = { x: 0, y: 0 }
 
   // 2. 依次旋转模板图像
-  for (let angle = 0; angle < 360; angle += 2) {
+  for (let angle = 0; angle < 360; angle += 1) {
     // 以2度为步长
     // 计算旋转矩阵
     const center = new cv.Point(template.cols / 2, template.rows / 2)
@@ -329,9 +329,9 @@ export const ImageInfoInParent = async (largeBase64: string, smallBase64: string
   cv.cvtColor(largeMat, largeMat, cv.COLOR_RGBA2GRAY)
   cv.cvtColor(smallMat, smallMat, cv.COLOR_RGBA2GRAY)
 
-  // 对图像进行二值化处理
-  cv.threshold(largeMat, largeMat, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
-  cv.threshold(smallMat, smallMat, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+  // // 对图像进行二值化处理
+  // cv.threshold(largeMat, largeMat, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+  // cv.threshold(smallMat, smallMat, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
 
   // 创建矩阵以存储匹配结果
   const result = new cv.Mat()
@@ -403,7 +403,7 @@ export const recognize = async (base64: string) => {
   cv.cvtColor(mat, dst, cv.COLOR_RGBA2GRAY)
 
   // 对图像进行二值化处理
-  cv.threshold(dst, dst, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+  // cv.threshold(dst, dst, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
 
   // 将结果显示在canvas中
   cv.imshow('canvasOutput', dst)

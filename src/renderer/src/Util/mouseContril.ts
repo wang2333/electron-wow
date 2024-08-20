@@ -152,7 +152,6 @@ export const turning = async (range: number) => {
   // // 释放右键
   await mouse.releaseButton(Button.RIGHT)
   // await mouse.setPosition({ x: GAME_POSITION.x, y: GAME_POSITION.y })
-  // await sleep(300)
   // // // 按下右键
   // await mouse.pressButton(Button.RIGHT)
   // // // 移动到结束位置
