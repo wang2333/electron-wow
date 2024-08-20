@@ -54,4 +54,5 @@ if (process.contextIsolated) {
   window.cv = cv
   // @ts-ignore (define in dts)
   window.tesseract = tesseract
+  // @ts-ignore (define in dts)
 }

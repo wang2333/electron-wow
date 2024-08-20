@@ -45,5 +45,6 @@ declare global {
       pixelWithColor: (color: RGBA) => ColorQuery
     }
     tesseract: any
+    robotjs: any
   }
 }

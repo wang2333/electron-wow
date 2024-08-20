@@ -133,9 +133,22 @@ export const pressKey = async (key: Key) => {
 }
 
 /** 长按键 */
+// export const pressKeyLong = async (key: Key, duration: number) => {
+//   await keyboard.pressKey(key)
+//   await new Promise((resolve) => setTimeout(resolve, duration))
+//   await keyboard.releaseKey(key)
+// }
+
 export const pressKeyLong = async (key: Key, duration: number) => {
   await keyboard.pressKey(key)
-  await new Promise((resolve) => setTimeout(resolve, duration))
+
+  const start = performance.now()
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+  while (performance.now() - start < duration) {
+    await sleep(1) // 每次等待1毫秒
+  }
+
   await keyboard.releaseKey(key)
 }
 
@@ -147,8 +160,8 @@ export const turning = async (range: number) => {
   // // 按下右键
   await mouse.pressButton(Button.RIGHT)
   // // 移动到结束位置
-  // await mouse.move(straightTo({ x: distance, y: GAME_POSITION.y }))
-  await mouse.move([{ x: distance, y: GAME_POSITION.y }])
+  await mouse.move(straightTo({ x: distance, y: GAME_POSITION.y }))
+  // await mouse.move([{ x: 100, y: GAME_POSITION.y }])
   // // 释放右键
   await mouse.releaseButton(Button.RIGHT)
   // await mouse.setPosition({ x: GAME_POSITION.x, y: GAME_POSITION.y })

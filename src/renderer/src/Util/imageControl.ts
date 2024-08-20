@@ -130,12 +130,21 @@ export const getImagePosition = async (
   const mat = await base64ToMat(targetBase64)
 
   // 转为灰度图像
-  // cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY)
+  cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY)
 
   // 初始化最佳匹配结果
   let bestMatch = { distance: Infinity, angle: 0, score: -1 }
 
-  const directions = ['leftImg', 'rightImg', 'topImg', 'bottomImg']
+  const directions = [
+    'leftImg',
+    'rightImg',
+    'topImg',
+    'bottomImg',
+    'leftTopImg',
+    'leftBottomImg',
+    'rightTopImg',
+    'rightBottomImg'
+  ]
 
   // 遍历每个方向进行匹配
   for (const direction of directions) {
@@ -168,9 +177,9 @@ const matchAndDraw = async (paneMat: Mat, currentImg: string, targetImg: string)
     base64ToMat(targetImg)
   ])
 
-  // // // 转为灰度图像
-  // cv.cvtColor(curentMat, curentMat, cv.COLOR_RGBA2GRAY)
-  // cv.cvtColor(targetMat, targetMat, cv.COLOR_RGBA2GRAY)
+  // // 转为灰度图像
+  cv.cvtColor(curentMat, curentMat, cv.COLOR_RGBA2GRAY)
+  cv.cvtColor(targetMat, targetMat, cv.COLOR_RGBA2GRAY)
 
   // // 对图像进行二值化处理
   // cv.threshold(curentMat, curentMat, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
@@ -226,13 +235,21 @@ export const getImageFourFeature = async (base64: string) => {
   const rightImg = safeCrop(src, centerX + CROP_SIZE, centerY, CROP_SIZE)
   const topImg = safeCrop(src, centerX, centerY - CROP_SIZE, CROP_SIZE)
   const bottomImg = safeCrop(src, centerX, centerY + CROP_SIZE, CROP_SIZE)
+  const leftTopImg = safeCrop(src, centerX - CROP_SIZE, centerY - CROP_SIZE, CROP_SIZE)
+  const leftBottomImg = safeCrop(src, centerX - CROP_SIZE, centerY + CROP_SIZE, CROP_SIZE)
+  const rightTopImg = safeCrop(src, centerX + CROP_SIZE, centerY - CROP_SIZE, CROP_SIZE)
+  const rightBottomImg = safeCrop(src, centerX + CROP_SIZE, centerY + CROP_SIZE, CROP_SIZE)
 
   const obj = {
     centerImg: matToBase64(centerImg),
     leftImg: matToBase64(leftImg),
     rightImg: matToBase64(rightImg),
     topImg: matToBase64(topImg),
-    bottomImg: matToBase64(bottomImg)
+    bottomImg: matToBase64(bottomImg),
+    leftTopImg: matToBase64(leftTopImg),
+    leftBottomImg: matToBase64(leftBottomImg),
+    rightTopImg: matToBase64(rightTopImg),
+    rightBottomImg: matToBase64(rightBottomImg)
   }
 
   // Clean up

@@ -6,7 +6,7 @@ interface IColorDict {
 }
 
 /** 每毫秒旋转角度 */
-export const DEGREES_PER_MILLISEOND = 2000 / 360
+export const DEGREES_PER_MILLISEOND = 1980 / 360
 
 /** 右键每像素旋转角度 */
 export const DEGREES_PER_PIXEL = 1600 / 360
@@ -18,8 +18,8 @@ export const PERSON_CENTER = {
 }
 /** 游戏画面中心点 */
 export const GAME_POSITION = {
-  x: 850,
-  y: 800
+  x: 980,
+  y: 130
 }
 /** 雷达箭头模板路径 */
 export const ARROW_IMG_PATH = window.api.getResourcePath('resources/images/arrow.png')
