@@ -100,12 +100,12 @@ function Monster(): JSX.Element {
 
   /** 读取模板文件 */
   const init = async () => {
-    const file = await window.api.readFile('./resources/config.json')
-    const config = JSON.parse(file.toString())
-    setStartX(config.radarX)
-    setStartY(config.radarY)
-    setWidth(config.radarWidth)
-    setHeight(config.radarHeight)
+    // const file = await window.api.readFile('./resources/config.json')
+    // const config = JSON.parse(file.toString())
+    // setStartX(config.radarX)
+    // setStartY(config.radarY)
+    // setWidth(config.radarWidth)
+    // setHeight(config.radarHeight)
 
     // 读取任务箭头模板资源
     const arrowBase64 = await imageToBase64(ARROW_IMG_PATH)
@@ -193,6 +193,8 @@ function Monster(): JSX.Element {
 
   /** 无限循环执行脚本 */
   const loop = async () => {
+    const currentPathPoint = Object.keys(imgPaths).filter((v) => v.includes(pathType))
+
     while (!stopLoopRef.current) {
       // 判断是否在战斗中
       // const isAttact = await isPlayerAttact()
@@ -232,7 +234,6 @@ function Monster(): JSX.Element {
       // }
 
       // 判断当前所在路径
-      const currentPathPoint = Object.keys(imgPaths).filter((v) => v.includes(pathType))
 
       if (pathIndexRef.current < currentPathPoint.length) {
         // 向下一坐标移动
@@ -272,9 +273,9 @@ function Monster(): JSX.Element {
     }
 
     // 角度修正, 计算最低旋转角度
-    if (needAngle < -180) {
+    if (needAngle <= -180) {
       needAngle = needAngle + 360
-    } else if (needAngle > 180) {
+    } else if (needAngle >= 180) {
       needAngle = needAngle - 360
     }
 
@@ -370,12 +371,48 @@ function Monster(): JSX.Element {
   }
 
   const test = async () => {
-    await sleep(2000)
+    // await sleep(2000)
+
+    const currentBase64 = imgPaths[`${pathType}-${0}.png`]
+    const targetBase64 = imgPaths[`${pathType}-${1}.png`]
+    const [curPosition, tarPosition] = await Promise.all([
+      // 当前雷达信息
+      getImageFourFeature(currentBase64),
+      // 读取目标点特征
+      getImageFourFeature(targetBase64)
+    ])
+    const [{ distance, angle }, { angle: personAngle }] = await Promise.all([
+      // 获取与目标点位的距离和角度
+      getImagePosition(targetBase64, tarPosition, curPosition),
+      // 人物当前视角角度
+      processImages(curPosition.centerImg, imgTemplate.arrow)
+    ])
+
+    console.log('distance :>> ', distance, angle, personAngle)
+
+    // 计算人物视角应该偏移的角度
+    let needAngle = 0
+    if (angle < 0) {
+      needAngle = personAngle - (360 + angle)
+    } else if (angle > 0) {
+      needAngle = (angle - personAngle) * -1
+    }
+
+    // 角度修正, 计算最低旋转角度
+    if (needAngle < -180) {
+      needAngle = needAngle + 360
+    } else if (needAngle > 180) {
+      needAngle = needAngle - 360
+    }
+
+    // // 调整视角
+    // needAngle = +needAngle.toFixed(2)
+    console.log('👻 ~ needAngle:', needAngle)
 
     // await clickInRect(1000, 250, 500, 100, 100, 100)
     // await clickInSpiral(700, 300, 200, 50, 10)
     // await clickInCircle(700, 300, 200, 10)
-    await turning(180)
+    // await turning(180)
     // await sleep(1000)
     // await turning(-90)
     // await clickInRect(570, 570, 530, 300, 50, 50)
