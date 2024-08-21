@@ -5,7 +5,7 @@ const cv = window.cv
 const Tesseract = window.tesseract
 
 // 定义特征截图的大小
-const CROP_SIZE = 45
+const CROP_SIZE = 35
 
 /** base64图片生成img节点 */
 export const base64ToImage = async (base64: string): Promise<HTMLImageElement> => {
@@ -130,28 +130,39 @@ export const getImagePosition = async (
   const mat = await base64ToMat(targetBase64)
 
   // 转为灰度图像
-  cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY)
+  // cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY)
 
   // 初始化最佳匹配结果
-  let bestMatch = { distance: Infinity, angle: 0, score: -1 }
+  let bestMatch: any = null
 
   const directions = [
     'leftImg',
     'rightImg',
     'topImg',
-    'bottomImg',
-    'leftTopImg',
-    'leftBottomImg',
-    'rightTopImg',
-    'rightBottomImg'
+    'bottomImg'
+    // 'leftTopImg',
+    // 'leftBottomImg',
+    // 'rightTopImg',
+    // 'rightBottomImg'
   ]
 
   // 遍历每个方向进行匹配
   for (const direction of directions) {
     const matchResult = await matchAndDraw(mat, current[direction], target[direction])
 
-    // 更新最佳匹配结果
-    if (matchResult.score > bestMatch.score) {
+    // 检查是否存在相同的 distance 和 angle
+    if (
+      bestMatch &&
+      matchResult.score > 0.9 &&
+      matchResult.distance === bestMatch.distance &&
+      matchResult.angle === bestMatch.angle
+    ) {
+      // 如果找到相同的 distance 和 angle，返回这条数据
+      return matchResult
+    }
+
+    // 如果当前的 bestMatch 还没有初始化，则初始化它
+    if (!bestMatch) {
       bestMatch = matchResult
     }
   }
@@ -164,8 +175,8 @@ export const getImagePosition = async (
 
   // 返回最佳匹配的距离和角度
   return {
-    distance: +bestMatch.distance.toFixed(2),
-    angle: +bestMatch.angle.toFixed(2),
+    distance: +bestMatch.distance,
+    angle: +bestMatch.angle,
     score: bestMatch.score === 1 ? 0 : bestMatch.score
   }
 }
@@ -177,11 +188,11 @@ const matchAndDraw = async (paneMat: Mat, currentImg: string, targetImg: string)
     base64ToMat(targetImg)
   ])
 
-  // // 转为灰度图像
-  cv.cvtColor(curentMat, curentMat, cv.COLOR_RGBA2GRAY)
-  cv.cvtColor(targetMat, targetMat, cv.COLOR_RGBA2GRAY)
+  // 转为灰度图像
+  // cv.cvtColor(curentMat, curentMat, cv.COLOR_RGBA2GRAY)
+  // cv.cvtColor(targetMat, targetMat, cv.COLOR_RGBA2GRAY)
 
-  // // 对图像进行二值化处理
+  // 对图像进行二值化处理
   // cv.threshold(curentMat, curentMat, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
   // cv.threshold(targetMat, targetMat, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
 
@@ -201,8 +212,8 @@ const matchAndDraw = async (paneMat: Mat, currentImg: string, targetImg: string)
   const centerTarget = calculateCenter(maxPointTarget, targetMat)
 
   // 计算距离和角度
-  const distance = calculateDistance(centerCurrent, centerTarget).toFixed(2)
-  const angle = calculateAngle(centerCurrent, centerTarget).toFixed(2)
+  const distance = calculateDistance(centerCurrent, centerTarget)
+  const angle = calculateAngle(centerCurrent, centerTarget)
 
   // 获取匹配度（分数）
   const score = cv.minMaxLoc(resultTarget, mask).maxVal
@@ -238,7 +249,7 @@ export const getImageFourFeature = async (base64: string) => {
   const leftTopImg = safeCrop(src, centerX - CROP_SIZE, centerY - CROP_SIZE, CROP_SIZE)
   const leftBottomImg = safeCrop(src, centerX - CROP_SIZE, centerY + CROP_SIZE, CROP_SIZE)
   const rightTopImg = safeCrop(src, centerX + CROP_SIZE, centerY - CROP_SIZE, CROP_SIZE)
-  const rightBottomImg = safeCrop(src, centerX + CROP_SIZE, centerY + CROP_SIZE, CROP_SIZE)
+  const rightBottomImg = safeCrop(src, centerX - CROP_SIZE, centerY + CROP_SIZE, CROP_SIZE)
 
   const obj = {
     centerImg: matToBase64(centerImg),
@@ -330,6 +341,195 @@ export const processImages = async (queryImg: string, templateImg: string) => {
     angle: bestAngle,
     bestLocation,
     bestMatchVal
+  }
+}
+
+export const detectMovement = async (currentImg: string, targetImg: string) => {
+  const [curentMat, targetMat] = await Promise.all([
+    base64ToMat(currentImg),
+    base64ToMat(targetImg)
+  ])
+
+  // Convert to grayscale
+  const grayCurrent = new cv.Mat()
+  const grayPrevious = new cv.Mat()
+  cv.cvtColor(curentMat, grayCurrent, cv.COLOR_BGR2GRAY)
+  cv.cvtColor(targetMat, grayPrevious, cv.COLOR_BGR2GRAY)
+
+  // Create ORB object
+  const orb = new cv.ORB(5000, 1.2, 8, 15)
+
+  // Detect ORB keypoints and descriptors
+  const keypoints1 = new cv.KeyPointVector()
+  const keypoints2 = new cv.KeyPointVector()
+  const descriptors1 = new cv.Mat()
+  const descriptors2 = new cv.Mat()
+  orb.detectAndCompute(grayPrevious, new cv.Mat(), keypoints1, descriptors1)
+  orb.detectAndCompute(grayCurrent, new cv.Mat(), keypoints2, descriptors2)
+
+  // Check if descriptors are empty
+  if (descriptors1.rows === 0 || descriptors2.rows === 0) {
+    return { distance: 0, angle: 0, movement: new cv.Point(0, 0) }
+  }
+
+  // Use BFMatcher for feature matching
+  const bf = new cv.BFMatcher(cv.NORM_HAMMING, false)
+  const matches = new cv.DMatchVectorVector()
+  bf.knnMatch(descriptors1, descriptors2, matches, 2)
+
+  // Apply Lowe's ratio test
+  const goodMatches: any[] = []
+  for (let i = 0; i < matches.size(); i++) {
+    const m = matches.get(i).get(0)
+    const n = matches.get(i).get(1)
+    if (m.distance < 0.75 * n.distance) {
+      goodMatches.push(m)
+    }
+  }
+
+  // If there are enough good matches, calculate displacement vector
+  if (goodMatches.length > 5) {
+    let movementX = 0
+    let movementY = 0
+
+    for (let i = 0; i < goodMatches.length; i++) {
+      const pt1 = keypoints1.get(goodMatches[i].queryIdx).pt
+      const pt2 = keypoints2.get(goodMatches[i].trainIdx).pt
+      movementX += pt2.x - pt1.x
+      movementY += pt2.y - pt1.y
+    }
+
+    movementX /= goodMatches.length
+    movementY /= goodMatches.length
+
+    // Calculate distance and angle
+    const centerX = curentMat.cols / 2
+    const centerY = curentMat.rows / 2
+    const endX = centerX - movementX
+    const endY = centerY - movementY
+
+    const centerPoint = new cv.Point(centerX, centerY)
+    const endPoint = new cv.Point(endX, endY)
+
+    const distance = calculateDistance(centerPoint, endPoint)
+    const angle = calculateAngle(centerPoint, endPoint)
+
+    drawLine(curentMat, centerPoint, endPoint, new cv.Scalar(0, 0, 255, 255)) // 蓝色线
+
+    cv.imshow('canvasOutput', curentMat)
+
+    return { distance, angle, movement: new cv.Point(movementX, movementY) }
+  } else {
+    return { distance: 0, angle: 0, movement: new cv.Point(0, 0) }
+  }
+}
+
+export const detectMovement2 = async (currentImg: string, targetImg: string) => {
+  const [curentMat, targetMat] = await Promise.all([
+    base64ToMat(currentImg),
+    base64ToMat(targetImg)
+  ])
+
+  // Convert to grayscale
+  const grayCurrent = new cv.Mat()
+  const grayPrevious = new cv.Mat()
+  cv.cvtColor(curentMat, grayCurrent, cv.COLOR_BGR2GRAY)
+  cv.cvtColor(targetMat, grayPrevious, cv.COLOR_BGR2GRAY)
+  // Create ORB object
+  const orb = new cv.ORB(5000, 1.2, 8, 15)
+
+  // Detect ORB keypoints and descriptors
+  const keypoints1 = new cv.KeyPointVector()
+  const keypoints2 = new cv.KeyPointVector()
+  const descriptors1 = new cv.Mat()
+  const descriptors2 = new cv.Mat()
+  orb.detectAndCompute(grayPrevious, new cv.Mat(), keypoints1, descriptors1)
+  orb.detectAndCompute(grayCurrent, new cv.Mat(), keypoints2, descriptors2)
+
+  // Check if descriptors are empty
+  if (descriptors1.rows === 0 || descriptors2.rows === 0) {
+    return { distance: 0, angle: 0, movement: new cv.Point(0, 0) }
+  }
+
+  // Use BFMatcher for feature matching
+  const bf = new cv.BFMatcher(cv.NORM_HAMMING, false)
+  const matches = new cv.DMatchVectorVector()
+  bf.knnMatch(descriptors1, descriptors2, matches, 2)
+
+  // Apply Lowe's ratio test
+  const goodMatches: any[] = []
+  for (let i = 0; i < matches.size(); i++) {
+    const m = matches.get(i).get(0)
+    const n = matches.get(i).get(1)
+    if (m.distance < 0.75 * n.distance) {
+      goodMatches.push(m)
+    }
+  }
+
+  // If there are enough good matches, calculate displacement vector
+  if (goodMatches.length > 5) {
+    const pts1: Point[] = []
+    const pts2: Point[] = []
+    for (let i = 0; i < goodMatches.length; i++) {
+      pts1.push(keypoints1.get(goodMatches[i].queryIdx).pt)
+      pts2.push(keypoints2.get(goodMatches[i].trainIdx).pt)
+    }
+
+    const pts1Mat = cv.matFromArray(
+      pts1.length,
+      1,
+      cv.CV_32FC2,
+      ([] as any[]).concat(...pts1.map((p) => [p.x, p.y]))
+    )
+    const pts2Mat = cv.matFromArray(
+      pts2.length,
+      1,
+      cv.CV_32FC2,
+      ([] as any[]).concat(...pts2.map((p) => [p.x, p.y]))
+    )
+
+    const mask = new cv.Mat()
+    cv.findHomography(pts1Mat, pts2Mat, cv.RANSAC, 5.0, mask)
+    const matchesMask = mask.data
+
+    // Calculate movement only for inliers after RANSAC
+    let movementX = 0
+    let movementY = 0
+    let inlierCount = 0
+    for (let i = 0; i < matchesMask.length; i++) {
+      if (matchesMask[i]) {
+        movementX += pts2[i].x - pts1[i].x
+        movementY += pts2[i].y - pts1[i].y
+        inlierCount++
+      }
+    }
+
+    if (inlierCount > 0) {
+      movementX /= inlierCount
+      movementY /= inlierCount
+
+      // Calculate distance and angle
+      const centerX = curentMat.cols / 2
+      const centerY = curentMat.rows / 2
+      const endX = centerX - movementX
+      const endY = centerY - movementY
+
+      const centerPoint = new cv.Point(centerX, centerY)
+      const endPoint = new cv.Point(endX, endY)
+
+      const distance = calculateDistance(centerPoint, endPoint)
+      const angle = calculateAngle(centerPoint, endPoint)
+
+      drawLine(curentMat, centerPoint, endPoint, new cv.Scalar(0, 0, 255, 255)) // 蓝色线
+
+      cv.imshow('canvasOutput', curentMat)
+
+      return { distance, angle, movement: new cv.Point(movementX, movementY) }
+    } else {
+      return { distance: 0, angle: 0, movement: new cv.Point(0, 0) }
+    }
+  } else {
+    return { distance: 0, angle: 0, movement: new cv.Point(0, 0) }
   }
 }
 

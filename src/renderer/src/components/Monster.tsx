@@ -11,6 +11,8 @@ import {
 import {
   base64ToMat,
   calculateAngle,
+  detectMovement,
+  detectMovement2,
   getImageFourFeature,
   getImagePosition,
   imageDataToBase64,
@@ -383,37 +385,48 @@ function Monster(): JSX.Element {
   }
 
   const test = async () => {
-    // await sleep(2000)
-    // const targetBase64 = imgPaths[`${pathType}-${0}.png`]
-    // const [curPosition, tarPosition] = await Promise.all([
-    //   // 当前雷达信息
-    //   getCurPosition(),
-    //   // 读取目标点特征
-    //   getImageFourFeature(targetBase64)
-    // ])
+    const curBase64 = imgPaths[`${pathType}-${0}.png`]
+    const targetBase64 = imgPaths[`${pathType}-${1}.png`]
+
+    console.time()
     // const [{ distance, angle }, { angle: personAngle }] = await Promise.all([
-    //   // 获取与目标点位的距离和角度
-    //   getImagePosition(targetBase64, tarPosition, curPosition),
-    //   // 人物当前视角角度
-    //   processImages(curPosition.centerImg, imgTemplate.arrow)
+    //   detectMovement2(curBase64, targetBase64),
+    //   processImages(curBase64, imgTemplate.arrow)
     // ])
-    // console.log('distance :>> ', distance, angle, personAngle)
-    // // 计算人物视角应该偏移的角度
-    // let needAngle = 0
-    // if (angle < 0) {
-    //   needAngle = personAngle - (360 + angle)
-    // } else if (angle > 0) {
-    //   needAngle = (angle - personAngle) * -1
-    // }
-    // // 角度修正, 计算最低旋转角度
-    // if (needAngle <= -180) {
-    //   needAngle = needAngle + 360
-    // } else if (needAngle >= 180) {
-    //   needAngle = needAngle - 360
-    // }
-    // // // 调整视角
-    // // needAngle = +needAngle.toFixed(2)
-    // console.log('👻 ~ needAngle:', needAngle)
+
+    const [curPosition, tarPosition] = await Promise.all([
+      // getCurPosition(),
+      getImageFourFeature(curBase64),
+      getImageFourFeature(targetBase64)
+    ])
+    const [{ distance, angle, score }, { angle: personAngle }] = await Promise.all([
+      // 获取与目标点位的距离和角度
+      getImagePosition(targetBase64, tarPosition, curPosition),
+      // 人物当前视角角度
+      processImages(curPosition.centerImg, imgTemplate.arrow)
+    ])
+    console.log('👻 ~ distance:', distance, angle)
+
+    // if (score == 0) return
+    // 计算人物视角应该偏移的角度
+    let needAngle = 0
+    if (angle < 0) {
+      needAngle = personAngle - (360 + angle)
+    } else if (angle > 0) {
+      needAngle = (angle - personAngle) * -1
+    }
+    // 角度修正, 计算最低旋转角度
+    if (needAngle <= -180) {
+      needAngle = needAngle + 360
+    } else if (needAngle >= 180) {
+      needAngle = needAngle - 360
+    }
+    needAngle = +needAngle.toFixed(2)
+    console.log('👻 ~ needAngle:', needAngle)
+    console.timeEnd()
+
+    // // 调整视角
+
     // if (Math.abs(needAngle) > 5) {
     //   await turning(-needAngle)
     //   // await pressKeyLong(
