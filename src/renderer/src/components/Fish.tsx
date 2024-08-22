@@ -63,8 +63,6 @@ const Fish: React.FC = () => {
           y: config.processY
         })
         await pressKey(Key.Enter)
-        await sleep(1000)
-        await pressKey(Key.Enter)
         await sleep(10000)
         continue
       }
@@ -124,7 +122,7 @@ const Fish: React.FC = () => {
   const isLoginOut = async () => {
     const color = await colorAt({ x: config.loginOutX, y: config.loginOutY })
     saveLog(`检测是否在小退界面---${config.loginOutColor}/${color}`)
-    return !color.includes(config.loginOutColor)
+    return color.includes(config.loginOutColor)
   }
 
   /** 报错日志信息 */
