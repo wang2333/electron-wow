@@ -63,6 +63,8 @@ const Fish: React.FC = () => {
           y: config.processY
         })
         await pressKey(Key.Enter)
+        await sleep(1000)
+        await pressKey(Key.Enter)
         await sleep(10000)
       }
 
