@@ -2,5 +2,17 @@
   "radarX": 1460,
   "radarY": 74,
   "radarWidth": 212,
-  "radarHeight": 212
+  "radarHeight": 212,
+
+  "micX": 420,
+  "micY": 355,
+  "micColor": "#ffffff",
+
+  "processX": 700,
+  "processY": 1142,
+  "processColor": "#00b700",
+
+  "loginOutX": 320,
+  "loginOutY": 764,
+  "loginOutColor": "#00b400"
 }

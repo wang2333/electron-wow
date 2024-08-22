@@ -11,8 +11,6 @@ import {
 import {
   base64ToMat,
   calculateAngle,
-  detectMovement,
-  detectMovement2,
   getImageFourFeature,
   getImagePosition,
   imageDataToBase64,
@@ -206,41 +204,41 @@ function Monster(): JSX.Element {
 
     while (!stopLoopRef.current) {
       // 判断是否在战斗中
-      // const isAttact = await isPlayerAttact()
-      // if (isAttact) {
-      //   isMoveMonsterRef.current = false
-      //   isAttactRef.current = true
-      //   // 在战斗中，停止移动
-      //   await playerStop()
-      //   // 开始战斗循环
-      //   await pressKey(Key.Q)
+      const isAttact = await isPlayerAttact()
+      if (isAttact) {
+        isMoveMonsterRef.current = false
+        isAttactRef.current = true
+        // 在战斗中，停止移动
+        await playerStop()
+        // 开始战斗循环
+        await pressKey(Key.Q)
 
-      //   saveLog(`人物战斗中`)
-      //   continue
-      // }
+        saveLog(`人物战斗中`)
+        continue
+      }
 
-      // // 战斗结束时，取消选中怪物标记并进行拾取
-      // if (isAttactRef.current) {
-      //   isAttactRef.current = false
-      //   isMoveMonsterRef.current = false
-      //   await clickInRect(570, 570, 530, 300, 50, 50)
-      // }
+      // 战斗结束时，取消选中怪物标记并进行拾取
+      if (isAttactRef.current) {
+        isAttactRef.current = false
+        isMoveMonsterRef.current = false
+        await clickInRect(570, 570, 530, 300, 50, 50)
+      }
 
-      // const monsterPosition = await isFindMonster()
-      // // 没有选中怪物时，寻找怪物
-      // if (monsterPosition) {
-      //   isMoveMonsterRef.current = true
-      //   saveLog(`找到怪物，向怪物移动`)
-      // }
+      const monsterPosition = await isFindMonster()
+      // 没有选中怪物时，寻找怪物
+      if (monsterPosition) {
+        isMoveMonsterRef.current = true
+        saveLog(`找到怪物，向怪物移动`)
+      }
 
-      // if (monsterPosition && typeof monsterPosition !== 'boolean') {
-      //   // 向怪物移动
-      //   await moveToMonster(monsterPosition)
-      //   // 尝试攻击怪物
-      //   await pressKey(Key.Q)
-      //   saveLog(`尝试向怪物发起攻击`)
-      //   continue
-      // }
+      if (monsterPosition && typeof monsterPosition !== 'boolean') {
+        // 向怪物移动
+        await moveToMonster(monsterPosition)
+        // 尝试攻击怪物
+        await pressKey(Key.Q)
+        saveLog(`尝试向怪物发起攻击`)
+        continue
+      }
 
       // 判断当前所在路径
 
@@ -399,7 +397,7 @@ function Monster(): JSX.Element {
       getImageFourFeature(curBase64),
       getImageFourFeature(targetBase64)
     ])
-    const [{ distance, angle, score }, { angle: personAngle }] = await Promise.all([
+    const [{ distance, angle }, { angle: personAngle }] = await Promise.all([
       // 获取与目标点位的距离和角度
       getImagePosition(targetBase64, tarPosition, curPosition),
       // 人物当前视角角度

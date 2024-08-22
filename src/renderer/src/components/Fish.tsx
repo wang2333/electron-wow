@@ -1,17 +1,13 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Key } from '@renderer/Util/Key'
-import { colorAt, pressKey } from '@renderer/Util/mouseContril'
+import { colorAt, mouseLeftClick, pressKey, sleep } from '@renderer/Util/mouseContril'
 
 const Fish: React.FC = () => {
   const [key1, setKey1] = useState('J')
   const [key2, setKey2] = useState('Q')
-  // const [micX, setMicX] = useState(1730)
-  // const [micY, setMicY] = useState(161)
-  // const [color, setColor] = useState('#1d6978')
-  const [micX, setMicX] = useState(480)
-  const [micY, setMicY] = useState(355)
-  const [color, setColor] = useState('#ffffff')
+
+  const [config, setConfig] = useState<any>({})
 
   // 脚本循环开关
   const stopLoopRef = useRef(false)
@@ -20,15 +16,28 @@ const Fish: React.FC = () => {
   const startTimeRef = useRef(0)
   const checkNumRef = useRef(0)
 
+  useEffect(() => {
+    init()
+  }, [])
+
+  const init = async () => {
+    const file = await window.api.readFile('./resources/config.json')
+    const config = JSON.parse(file.toString())
+    setConfig(config)
+
+    const c = await colorAt({ x: config.micX, y: config.micY })
+    console.log('👻 ~ c:', c)
+  }
+
   /** 脚本开始 */
   const startLoop = async () => {
-    const c = await colorAt({ x: micX, y: micY })
-    console.log('👻 ~ c:', c)
+    await mouseLeftClick({
+      x: config.processX,
+      y: config.processY
+    })
 
     stopLoopRef.current = false
-    setTimeout(() => {
-      loop()
-    }, 1000)
+    loop()
   }
 
   /** 脚本结束 */
@@ -45,17 +54,48 @@ const Fish: React.FC = () => {
   /** 无限循环执行脚本 */
   const loop = async () => {
     while (!stopLoopRef.current) {
-      if (!isStartRef.current || new Date().getTime() - startTimeRef.current > 17 * 1000) {
-        await pressKey(Key[key2])
-        await sleep(2000)
-        isStartRef.current = true
-        startTimeRef.current = new Date().getTime()
+      // 小退时处理
+      const loginOutFlag = await isLoginOut()
+      if (loginOutFlag) {
+        await mouseLeftClick({
+          x: config.processX,
+          y: config.processY
+        })
+        await pressKey(Key.Enter)
+        await sleep(30000)
       }
 
+      // 没有开始钓鱼，或者没鱼上钩
+      if (!isStartRef.current || new Date().getTime() - startTimeRef.current > 17 * 1000) {
+        saveLog(`准备开始钓鱼`)
+
+        // 添加随机行为
+        if (Math.random() > 0.8) {
+          await mouseLeftClick({
+            x: config.processX,
+            y: config.processY
+          })
+          await pressKey(Key.Space)
+          saveLog(`执行了随机行为`)
+        }
+
+        await pressKey(Key[key2])
+        await sleep(1000)
+        // 判断是否开始钓鱼
+        const startFlag = await isStartFish()
+        if (startFlag) {
+          saveLog(`已经开始钓鱼`)
+          isStartRef.current = true
+          startTimeRef.current = new Date().getTime()
+        }
+      }
+
+      // 开始钓鱼，监测鱼上钩动作
       if (isStartRef.current) {
-        const c = await colorAt({ x: micX, y: micY })
-        console.log('👻 ~ c:', c)
-        if (!c.includes(color)) {
+        const c = await colorAt({ x: config.micX, y: config.micY })
+        saveLog(`正在钓鱼---${c}`)
+
+        if (!c.includes(config.micColor)) {
           checkNumRef.current = checkNumRef.current + 1
         }
         if (checkNumRef.current >= 2) {
@@ -67,18 +107,33 @@ const Fish: React.FC = () => {
         }
       }
 
-      await sleep(50)
+      await sleep(100)
     }
   }
 
-  const sleep = async (time: number) => {
-    // 生成一个0.8到1之间的随机数
-    const randomMultiplier = 0.8 + Math.random() * 0.2
-    // 计算延迟时间
-    const randomDelay = time * randomMultiplier
-
-    await new Promise((resolve) => setTimeout(resolve, randomDelay))
+  const isStartFish = async () => {
+    const color = await colorAt({ x: config.processX, y: config.processY })
+    return color.includes(config.processColor)
   }
+  const isLoginOut = async () => {
+    const color = await colorAt({ x: config.loginOutX, y: config.loginOutY })
+    return !color.includes(config.loginOutColor)
+  }
+
+  /** 报错日志信息 */
+  const saveLog = (info: string) => {
+    const textarea = document.getElementById('textarea') as HTMLTextAreaElement
+
+    let newLog = `${textarea.value}\n${info}`
+    const arr = newLog.split('\n')
+    if (arr.length > 100) {
+      newLog = arr.slice(-100).join('\n')
+    }
+
+    textarea.value = newLog
+    textarea.scrollTop = textarea.scrollHeight
+  }
+
   return (
     <div className={'fish'}>
       <div className="config">
@@ -89,26 +144,6 @@ const Fish: React.FC = () => {
         <div className="item">
           <span>甩杆：</span>
           <input value={key2} placeholder={'甩杆'} onChange={(e) => setKey2(e.target.value)} />
-        </div>
-
-        <div className="item">
-          <span>音量坐标：</span>
-          <input
-            type="number"
-            value={micX}
-            placeholder={'x坐标'}
-            onChange={(e) => setMicX(+e.target.value)}
-          />
-          <input
-            type="number"
-            value={micY}
-            placeholder={'y坐标'}
-            onChange={(e) => setMicY(+e.target.value)}
-          />
-        </div>
-        <div className="item">
-          <span>音量色值：</span>
-          <input value={color} placeholder={'甩干'} onChange={(e) => setColor(e.target.value)} />
         </div>
       </div>
 
@@ -123,6 +158,11 @@ const Fish: React.FC = () => {
         <button onClick={startLoop}>启动</button>
         <button onClick={stopLoop}>停止</button>
         <button onClick={handleRest}>重置</button>
+      </div>
+
+      <div className="result">
+        <span>输出结果：</span>
+        <textarea rows={8} id="textarea" />
       </div>
     </div>
   )
