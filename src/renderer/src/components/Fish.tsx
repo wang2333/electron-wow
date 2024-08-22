@@ -63,7 +63,7 @@ const Fish: React.FC = () => {
           y: config.processY
         })
         await pressKey(Key.Enter)
-        await sleep(40000)
+        await sleep(10000)
       }
 
       // 没有开始钓鱼，或者没鱼上钩
@@ -71,13 +71,14 @@ const Fish: React.FC = () => {
         saveLog(`准备开始钓鱼`)
 
         // 添加随机行为
-        if (Math.random() > 0.8) {
+        if (Math.random() > 0.95) {
           await mouseLeftClick({
             x: config.processX,
             y: config.processY
           })
           await pressKey(Key.Space)
           saveLog(`执行了随机行为`)
+          await sleep(1000)
         }
 
         await pressKey(Key[key2])
@@ -114,10 +115,12 @@ const Fish: React.FC = () => {
 
   const isStartFish = async () => {
     const color = await colorAt({ x: config.processX, y: config.processY })
+    saveLog(`检测是否正在钓鱼---${config.processColor}/${color}`)
     return color.includes(config.processColor)
   }
   const isLoginOut = async () => {
     const color = await colorAt({ x: config.loginOutX, y: config.loginOutY })
+    saveLog(`检测是否在小退界面---${config.loginOutColor}/${color}`)
     return !color.includes(config.loginOutColor)
   }
 
@@ -161,9 +164,23 @@ const Fish: React.FC = () => {
         <button onClick={handleRest}>重置</button>
       </div>
 
-      <div className="result">
+      <div
+        className="result"
+        style={{
+          display: 'flex',
+          padding: '10px',
+          justifyContent: 'center',
+          gap: '10px'
+        }}
+      >
         <span>输出结果：</span>
-        <textarea rows={8} id="textarea" />
+        <textarea
+          rows={8}
+          id="textarea"
+          style={{
+            flex: 1
+          }}
+        />
       </div>
     </div>
   )
