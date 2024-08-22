@@ -66,6 +66,7 @@ const Fish: React.FC = () => {
         await sleep(1000)
         await pressKey(Key.Enter)
         await sleep(10000)
+        continue
       }
 
       // 没有开始钓鱼，或者没鱼上钩
