@@ -57,12 +57,13 @@ const Fish: React.FC = () => {
       // 小退时处理
       const loginOutFlag = await isLoginOut()
       if (loginOutFlag) {
+        isStartRef.current = false
         await mouseLeftClick({
           x: config.processX,
           y: config.processY
         })
         await pressKey(Key.Enter)
-        await sleep(30000)
+        await sleep(40000)
       }
 
       // 没有开始钓鱼，或者没鱼上钩
@@ -80,7 +81,7 @@ const Fish: React.FC = () => {
         }
 
         await pressKey(Key[key2])
-        await sleep(1000)
+        await sleep(500)
         // 判断是否开始钓鱼
         const startFlag = await isStartFish()
         if (startFlag) {
