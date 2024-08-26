@@ -39,6 +39,14 @@ export const mouseMove = async (position: Point | Promise<Point>) => {
   return await mouse.move(straightTo(position))
 }
 
+/** 获取鼠标位置 */
+export const mouseInfo = async () => {
+  const position = await mouse.getPosition()
+  const color = await colorAt(position)
+
+  return { color, position }
+}
+
 /** 单击右键 */
 export const mouseRightClick = async (position?: Point | Promise<Point>) => {
   if (position) {

@@ -41,7 +41,7 @@ function createWindow(): void {
 
   mainWindow.webContents.openDevTools()
   /** 控制窗口置顶 */
-  mainWindow.setAlwaysOnTop(true, 'floating')
+  // mainWindow.setAlwaysOnTop(true, 'floating')
 }
 
 // This method will be called when Electron has finished
@@ -90,6 +90,11 @@ app.on('ready', () => {
   globalShortcut.register('F2', () => {
     // 在这里执行你想要的操作
     mainWindow.webContents.send('shortcut-pressed', 'F2')
+  })
+  globalShortcut.unregister('F3')
+  globalShortcut.register('F3', () => {
+    // 在这里执行你想要的操作
+    mainWindow.webContents.send('shortcut-pressed', 'F3')
   })
   // 检查快捷键是否注册成功
   // console.log(globalShortcut.isRegistered('F1'))

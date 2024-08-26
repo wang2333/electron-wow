@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { Key } from '@renderer/Util/Key'
-import { colorAt, mouseLeftClick, pressKey, sleep } from '@renderer/Util/mouseContril'
+import { colorAt, mouseInfo, mouseLeftClick, pressKey, sleep } from '@renderer/Util/mouseContril'
 
 const Fish: React.FC = () => {
   const [key1, setKey1] = useState('J')
@@ -18,15 +18,23 @@ const Fish: React.FC = () => {
 
   useEffect(() => {
     init()
+
+    window.electron.ipcRenderer.removeAllListeners('shortcut-pressed')
+    window.electron.ipcRenderer.on('shortcut-pressed', async (_, info) => {
+      if (info === 'F1') {
+        getColor()
+      }
+    })
+    return () => {
+      window.electron.ipcRenderer.removeAllListeners('shortcut-pressed')
+      stopLoopRef.current = true // Stop the loop on unmount
+    }
   }, [])
 
   const init = async () => {
     const file = await window.api.readFile('./resources/config.json')
     const config = JSON.parse(file.toString())
     setConfig(config)
-
-    const c = await colorAt({ x: config.micX, y: config.micY })
-    console.log('👻 ~ c:', c)
   }
 
   /** 脚本开始 */
@@ -49,6 +57,11 @@ const Fish: React.FC = () => {
   const handleRest = () => {
     // 刷新页面
     window.location.reload()
+  }
+
+  const getColor = async () => {
+    const { color, position } = await mouseInfo()
+    saveLog(`当前位置颜色：${color}, 位置：${position.x}/${position.y}`)
   }
 
   /** 无限循环执行脚本 */
@@ -95,10 +108,10 @@ const Fish: React.FC = () => {
 
       // 开始钓鱼，监测鱼上钩动作
       if (isStartRef.current) {
-        const c = await colorAt({ x: config.micX, y: config.micY })
-        saveLog(`正在钓鱼---${c}`)
+        const color = await colorAt({ x: config.micX, y: config.micY })
+        saveLog(`正在钓鱼---${color}`)
 
-        if (!c.includes(config.micColor)) {
+        if (color !== config.micColor) {
           checkNumRef.current = checkNumRef.current + 1
         }
         if (checkNumRef.current >= 2) {
@@ -117,12 +130,12 @@ const Fish: React.FC = () => {
   const isStartFish = async () => {
     const color = await colorAt({ x: config.processX, y: config.processY })
     saveLog(`检测是否正在钓鱼---${config.processColor}/${color}`)
-    return color.includes(config.processColor)
+    return color === config.processColor
   }
   const isLoginOut = async () => {
     const color = await colorAt({ x: config.loginOutX, y: config.loginOutY })
     saveLog(`检测是否在小退界面---${config.loginOutColor}/${color}`)
-    return color.includes(config.loginOutColor)
+    return color === config.loginOutColo
   }
 
   /** 报错日志信息 */
@@ -163,6 +176,7 @@ const Fish: React.FC = () => {
         <button onClick={startLoop}>启动</button>
         <button onClick={stopLoop}>停止</button>
         <button onClick={handleRest}>重置</button>
+        <button onClick={getColor}>取色</button>
       </div>
 
       <div
