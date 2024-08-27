@@ -11,6 +11,7 @@ import {
 import {
   base64ToMat,
   calculateAngle,
+  detectMovement2,
   getImageFourFeature,
   getImagePosition,
   imageDataToBase64,
@@ -386,7 +387,6 @@ function Monster(): JSX.Element {
     const curBase64 = imgPaths[`${pathType}-${0}.png`]
     const targetBase64 = imgPaths[`${pathType}-${1}.png`]
 
-    console.time()
     // const [{ distance, angle }, { angle: personAngle }] = await Promise.all([
     //   detectMovement2(curBase64, targetBase64),
     //   processImages(curBase64, imgTemplate.arrow)
@@ -397,7 +397,7 @@ function Monster(): JSX.Element {
       getImageFourFeature(curBase64),
       getImageFourFeature(targetBase64)
     ])
-    const [{ distance, angle }, { angle: personAngle }] = await Promise.all([
+    const [{ distance, angle, score }, { angle: personAngle }] = await Promise.all([
       // 获取与目标点位的距离和角度
       getImagePosition(targetBase64, tarPosition, curPosition),
       // 人物当前视角角度
@@ -405,7 +405,7 @@ function Monster(): JSX.Element {
     ])
     console.log('👻 ~ distance:', distance, angle)
 
-    // if (score == 0) return
+    if (score == 0) return
     // 计算人物视角应该偏移的角度
     let needAngle = 0
     if (angle < 0) {
@@ -421,7 +421,6 @@ function Monster(): JSX.Element {
     }
     needAngle = +needAngle.toFixed(2)
     console.log('👻 ~ needAngle:', needAngle)
-    console.timeEnd()
 
     // // 调整视角
 

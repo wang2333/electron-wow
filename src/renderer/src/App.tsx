@@ -4,7 +4,7 @@ import Monster from './components/Monster'
 import Fish from './components/Fish'
 
 const App: React.FC = () => {
-  const [active, setActive] = useState(2)
+  const [active, setActive] = useState(1)
 
   return (
     <div className="tabs">

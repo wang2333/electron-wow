@@ -5,7 +5,7 @@ const cv = window.cv
 const Tesseract = window.tesseract
 
 // 定义特征截图的大小
-const CROP_SIZE = 35
+const CROP_SIZE = 30
 
 /** base64图片生成img节点 */
 export const base64ToImage = async (base64: string): Promise<HTMLImageElement> => {
@@ -140,7 +140,7 @@ export const getImagePosition = async (
     'rightImg',
     'topImg',
     'bottomImg'
-    // 'leftTopImg',
+    // 'leftTopImg'
     // 'leftBottomImg',
     // 'rightTopImg',
     // 'rightBottomImg'
@@ -150,6 +150,11 @@ export const getImagePosition = async (
   for (const direction of directions) {
     const matchResult = await matchAndDraw(mat, current[direction], target[direction])
 
+    // 如果当前的 bestMatch 还没有初始化，则初始化它
+    if (!bestMatch) {
+      bestMatch = matchResult
+    }
+
     // 检查是否存在相同的 distance 和 angle
     if (
       bestMatch &&
@@ -158,11 +163,6 @@ export const getImagePosition = async (
       matchResult.angle === bestMatch.angle
     ) {
       // 如果找到相同的 distance 和 angle，返回这条数据
-      return matchResult
-    }
-
-    // 如果当前的 bestMatch 还没有初始化，则初始化它
-    if (!bestMatch) {
       bestMatch = matchResult
     }
   }
@@ -246,21 +246,21 @@ export const getImageFourFeature = async (base64: string) => {
   const rightImg = safeCrop(src, centerX + CROP_SIZE, centerY, CROP_SIZE)
   const topImg = safeCrop(src, centerX, centerY - CROP_SIZE, CROP_SIZE)
   const bottomImg = safeCrop(src, centerX, centerY + CROP_SIZE, CROP_SIZE)
-  const leftTopImg = safeCrop(src, centerX - CROP_SIZE, centerY - CROP_SIZE, CROP_SIZE)
-  const leftBottomImg = safeCrop(src, centerX - CROP_SIZE, centerY + CROP_SIZE, CROP_SIZE)
-  const rightTopImg = safeCrop(src, centerX + CROP_SIZE, centerY - CROP_SIZE, CROP_SIZE)
-  const rightBottomImg = safeCrop(src, centerX - CROP_SIZE, centerY + CROP_SIZE, CROP_SIZE)
+  // const leftTopImg = safeCrop(src, centerX - CROP_SIZE, centerY - CROP_SIZE, CROP_SIZE)
+  // const leftBottomImg = safeCrop(src, centerX - CROP_SIZE, centerY + CROP_SIZE, CROP_SIZE)
+  // const rightTopImg = safeCrop(src, centerX + CROP_SIZE, centerY - CROP_SIZE, CROP_SIZE)
+  // const rightBottomImg = safeCrop(src, centerX - CROP_SIZE, centerY + CROP_SIZE, CROP_SIZE)
 
   const obj = {
     centerImg: matToBase64(centerImg),
     leftImg: matToBase64(leftImg),
     rightImg: matToBase64(rightImg),
     topImg: matToBase64(topImg),
-    bottomImg: matToBase64(bottomImg),
-    leftTopImg: matToBase64(leftTopImg),
-    leftBottomImg: matToBase64(leftBottomImg),
-    rightTopImg: matToBase64(rightTopImg),
-    rightBottomImg: matToBase64(rightBottomImg)
+    bottomImg: matToBase64(bottomImg)
+    // leftTopImg: matToBase64(leftTopImg),
+    // leftBottomImg: matToBase64(leftBottomImg),
+    // rightTopImg: matToBase64(rightTopImg),
+    // rightBottomImg: matToBase64(rightBottomImg)
   }
 
   // Clean up
