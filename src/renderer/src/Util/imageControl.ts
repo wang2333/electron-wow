@@ -1,5 +1,4 @@
 import { Mat, Point, Scalar } from '@techstark/opencv-js'
-import { sleep } from './mouseContril'
 
 const Jimp = window.Jimp
 const cv = window.cv

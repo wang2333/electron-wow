@@ -409,10 +409,8 @@ function Monster(): JSX.Element {
     // dst.delete()
     // M.delete() // 释放内存
 
-    const curBase64 = imgPaths[`${pathType}-${1}.png`]
-    const targetBase64 = imgPaths[`${pathType}-${1}.png`]
+    const curBase64 = imgPaths[`${pathType}-${8}.png`]
     const tar = await getImageFourFeature(curBase64)
-    console.log('👻 ~ imgPaths:', imgPaths)
     const r = await processImages(tar.centerImg, imgTemplate.arrow)
     console.log('👻 ~ r:', r)
 
