@@ -8,17 +8,17 @@ const Tesseract = window.tesseract
 // 定义特征截图的大小
 const CROP_SIZE = 30
 /** 雷达到指针x间距 */
-export const leidaPaddingX = 200
+export const leidaPaddingX = 74
 /** 雷达到指针y间距 */
-export const leidaPaddingY = 200
+export const leidaPaddingY = 70
 /** 雷达指针x坐标 */
-export const leidaPointerX = 200
+export const leidaPointerX = 1162
 /** 雷达指针y坐标 */
-export const leidaPointerY = 200
+export const leidaPointerY = 136
 /** 雷达指针宽度 */
-export const leidaPointerWidth = 50
+export const leidaPointerWidth = 15
 /** 雷达指针高度 */
-export const leidaPointerHeight = 50
+export const leidaPointerHeight = 18
 
 /** base64图片生成img节点 */
 export const base64ToImage = async (base64: string): Promise<HTMLImageElement> => {
