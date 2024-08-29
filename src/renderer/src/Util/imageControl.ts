@@ -130,7 +130,7 @@ export const getImagePosition = async (
   const mat = await base64ToMat(targetBase64)
 
   // 转为灰度图像
-  // cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY)
+  cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY)
 
   // 初始化最佳匹配结果
   let bestMatch: any = null
@@ -189,8 +189,8 @@ const matchAndDraw = async (paneMat: Mat, currentImg: string, targetImg: string)
   ])
 
   // 转为灰度图像
-  // cv.cvtColor(curentMat, curentMat, cv.COLOR_RGBA2GRAY)
-  // cv.cvtColor(targetMat, targetMat, cv.COLOR_RGBA2GRAY)
+  cv.cvtColor(curentMat, curentMat, cv.COLOR_RGBA2GRAY)
+  cv.cvtColor(targetMat, targetMat, cv.COLOR_RGBA2GRAY)
 
   // 对图像进行二值化处理
   // cv.threshold(curentMat, curentMat, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)

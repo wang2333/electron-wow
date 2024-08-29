@@ -130,12 +130,12 @@ const Fish: React.FC = () => {
   const isStartFish = async () => {
     const color = await colorAt({ x: config.processX, y: config.processY })
     saveLog(`检测是否正在钓鱼---${config.processColor}/${color}`)
-    return color === config.processColor
+    return color == config.processColor
   }
   const isLoginOut = async () => {
     const color = await colorAt({ x: config.loginOutX, y: config.loginOutY })
     saveLog(`检测是否在小退界面---${config.loginOutColor}/${color}`)
-    return color === config.loginOutColo
+    return color == config.loginOutColor
   }
 
   /** 报错日志信息 */

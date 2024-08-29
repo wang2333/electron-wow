@@ -11,7 +11,6 @@ import {
 import {
   base64ToMat,
   calculateAngle,
-  detectMovement2,
   getImageFourFeature,
   getImagePosition,
   imageDataToBase64,
@@ -58,11 +57,11 @@ function Monster(): JSX.Element {
   // 保存图片计数
   const [imgNum, setImgNum] = useState(0)
   // 雷达起点
-  const [startX, setStartX] = useState(1663)
-  const [startY, setStartY] = useState(73)
+  const [startX, setStartX] = useState(1100)
+  const [startY, setStartY] = useState(68)
   // 雷达尺寸
-  const [width, setWidth] = useState(153)
-  const [height, setHeight] = useState(153)
+  const [width, setWidth] = useState(151)
+  const [height, setHeight] = useState(148)
 
   // 录制路径类型
   const [pathType, setPathType] = useState<IPathType>('monster')
@@ -205,41 +204,41 @@ function Monster(): JSX.Element {
 
     while (!stopLoopRef.current) {
       // 判断是否在战斗中
-      const isAttact = await isPlayerAttact()
-      if (isAttact) {
-        isMoveMonsterRef.current = false
-        isAttactRef.current = true
-        // 在战斗中，停止移动
-        await playerStop()
-        // 开始战斗循环
-        await pressKey(Key.Q)
+      // const isAttact = await isPlayerAttact()
+      // if (isAttact) {
+      //   isMoveMonsterRef.current = false
+      //   isAttactRef.current = true
+      //   // 在战斗中，停止移动
+      //   await playerStop()
+      //   // 开始战斗循环
+      //   await pressKey(Key.Q)
 
-        saveLog(`人物战斗中`)
-        continue
-      }
+      //   saveLog(`人物战斗中`)
+      //   continue
+      // }
 
-      // 战斗结束时，取消选中怪物标记并进行拾取
-      if (isAttactRef.current) {
-        isAttactRef.current = false
-        isMoveMonsterRef.current = false
-        await clickInRect(570, 570, 530, 300, 50, 50)
-      }
+      // // 战斗结束时，取消选中怪物标记并进行拾取
+      // if (isAttactRef.current) {
+      //   isAttactRef.current = false
+      //   isMoveMonsterRef.current = false
+      //   await clickInRect(570, 570, 530, 300, 50, 50)
+      // }
 
-      const monsterPosition = await isFindMonster()
-      // 没有选中怪物时，寻找怪物
-      if (monsterPosition) {
-        isMoveMonsterRef.current = true
-        saveLog(`找到怪物，向怪物移动`)
-      }
+      // const monsterPosition = await isFindMonster()
+      // // 没有选中怪物时，寻找怪物
+      // if (monsterPosition) {
+      //   isMoveMonsterRef.current = true
+      //   saveLog(`找到怪物，向怪物移动`)
+      // }
 
-      if (monsterPosition && typeof monsterPosition !== 'boolean') {
-        // 向怪物移动
-        await moveToMonster(monsterPosition)
-        // 尝试攻击怪物
-        await pressKey(Key.Q)
-        saveLog(`尝试向怪物发起攻击`)
-        continue
-      }
+      // if (monsterPosition && typeof monsterPosition !== 'boolean') {
+      //   // 向怪物移动
+      //   await moveToMonster(monsterPosition)
+      //   // 尝试攻击怪物
+      //   await pressKey(Key.Q)
+      //   saveLog(`尝试向怪物发起攻击`)
+      //   continue
+      // }
 
       // 判断当前所在路径
 
@@ -280,6 +279,7 @@ function Monster(): JSX.Element {
       needAngle = (angle - personAngle) * -1
     }
 
+    console.log('👻 ~ personAngle:', angle, personAngle)
     // 角度修正, 计算最低旋转角度
     if (needAngle <= -180) {
       needAngle = needAngle + 360
@@ -287,19 +287,17 @@ function Monster(): JSX.Element {
       needAngle = needAngle - 360
     }
 
-    // // 调整视角
-    // needAngle = +needAngle.toFixed(2)
-
+    // 调整视角
     if (Math.abs(needAngle) > 5) {
-      // await playerStop()
+      await playerStop()
       // await turning(-needAngle)
-      await pressKeyLong(
-        needAngle < 0 ? Key.A : Key.D,
-        Math.abs(needAngle) * DEGREES_PER_MILLISEOND
-      )
-      await sleep(100)
+      // await pressKeyLong(
+      //   needAngle < 0 ? Key.A : Key.D,
+      //   Math.abs(needAngle) * DEGREES_PER_MILLISEOND
+      // )
+      // await sleep(1000)
     }
-    await playerForward()
+    // await playerForward()
     // 到达目标点位后，停止移动
     if (distance < 1.5) {
       await playerStop()

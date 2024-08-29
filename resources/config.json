@@ -4,15 +4,15 @@
   "radarWidth": 212,
   "radarHeight": 212,
 
-  "micX": 420,
-  "micY": 355,
-  "micColor": "#ffffff",
+  "micX": 1450,
+  "micY": 171,
+  "micColor": "#fbfbfbff",
 
-  "processX": 700,
-  "processY": 1142,
-  "processColor": "#00b700",
+  "processX": 525,
+  "processY": 862,
+  "processColor": "#00a800ff",
 
-  "loginOutX": 320,
-  "loginOutY": 764,
-  "loginOutColor": "#00b400"
+  "loginOutX": 188,
+  "loginOutY": 497,
+  "loginOutColor": "#7c92acff"
 }
