@@ -314,10 +314,10 @@ export const processImages = async (queryImg: string, templateImg: string) => {
       cv.BORDER_CONSTANT,
       new cv.Scalar()
     )
-    cv.imshow('canvasOutput', rotatedTemplate)
-    // 显示最终的匹配结果图像
+    // cv.imshow('canvasOutput', rotatedTemplate)
+    // // 显示最终的匹配结果图像
     cv.imshow('canvasOutput2', src)
-    await sleep(50)
+    // await sleep(50)
 
     // 3. 执行模板匹配
     const result = new cv.Mat()
@@ -330,7 +330,7 @@ export const processImages = async (queryImg: string, templateImg: string) => {
     const minMax = cv.minMaxLoc(result, mask)
     const maxVal = minMax.maxVal
     const maxLoc = minMax.maxLoc
-    console.log('👻 ~ maxVal:', maxVal, maxLoc)
+    // console.log('👻 ~ maxVal:', maxVal, maxLoc)
 
     if (maxVal > bestMatchVal) {
       bestMatchVal = maxVal

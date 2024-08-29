@@ -316,13 +316,6 @@ function Monster(): JSX.Element {
 
   /** 获取当前雷达图特征 */
   const getCurPosition = async () => {
-    console.log(
-      'object :>> ',
-      leidaPointerX - leidaPaddingX,
-      leidaPointerY - leidaPaddingY,
-      2 * leidaPaddingX + leidaPointerWidth,
-      2 * leidaPaddingY + leidaPointerHeight
-    )
     // 截取当前位置图片
     const curImageData = await grabRegion(
       leidaPointerX - leidaPaddingX,
