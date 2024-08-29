@@ -21,12 +21,9 @@
     <input type="file" id="input1" accept="image/*" />
     <input type="file" id="input2" accept="image/*" />
     <button id="detectMovementButton" disabled>Detect Movement</button>
-    <p>Angle: <span id="angle"></span> degrees</p>
-    <p>Distance: <span id="distance"></span> pixels</p>
-    <canvas id="canvasOutput" width="153" height="153"></canvas>
 
     <script>
-      let img1, img2
+      let img11, img22
 
       function onOpenCvReady() {
         document.getElementById('detectMovementButton').disabled = false
@@ -34,145 +31,69 @@
       }
 
       document.getElementById('input1').addEventListener('change', function (e) {
-        img1 = new Image()
-        img1.src = URL.createObjectURL(e.target.files[0])
+        img11 = new Image()
+        img11.src = URL.createObjectURL(e.target.files[0])
       })
 
       document.getElementById('input2').addEventListener('change', function (e) {
-        img2 = new Image()
-        img2.src = URL.createObjectURL(e.target.files[0])
+        img22 = new Image()
+        img22.src = URL.createObjectURL(e.target.files[0])
       })
 
       document.getElementById('detectMovementButton').addEventListener('click', function () {
-        let currentScreenshot = cv.imread(img1)
-        let previousScreenshot = cv.imread(img2)
+        let img1 = cv.imread(img11)
+        let img2 = cv.imread(img22)
 
-        console.time()
-        let movement = detectMovement(currentScreenshot, previousScreenshot)
-        console.timeEnd()
-        console.log('👻 ~ movement:', movement)
-        if (Math.hypot(movement.x, movement.y) > 0.5) {
-          // Draw the movement direction line
-          let centerX = currentScreenshot.cols / 2
-          let centerY = currentScreenshot.rows / 2
-          let endX = centerX - movement.x
-          let endY = centerY - movement.y
-          cv.line(
-            currentScreenshot,
-            new cv.Point(centerX, centerY),
-            new cv.Point(endX, endY),
-            new cv.Scalar(255, 255, 255),
-            2
-          )
-          cv.imshow('canvasOutput', currentScreenshot)
-          // const distanc = Math.sqrt(Math.pow(centerX - endX, 2) + Math.pow(centerY - endY, 2))
-          const distanc = Math.sqrt(movement.x * movement.x + movement.y * movement.y)
-          console.log('👻 ~ distanc:', distanc)
-          let angle = Math.atan2(movement.y, movement.x) * (180 / Math.PI) // Convert to degrees
-          console.log('👻 ~ angle:', angle)
-        }
-      })
+        // 初始化 ORB 特征检测器
+        let orb = new cv.ORB()
 
-      function detectMovement(currentScreenshot, previousScreenshot) {
-        // Convert to grayscale
-        let grayCurrent = new cv.Mat()
-        let grayPrevious = new cv.Mat()
-        cv.cvtColor(currentScreenshot, grayCurrent, cv.COLOR_BGR2GRAY)
-        cv.cvtColor(previousScreenshot, grayPrevious, cv.COLOR_BGR2GRAY)
-        // Create ORB object
-        let orb = new cv.ORB(5000)
-
-        // Detect ORB keypoints and descriptors
-        let keypoints1 = new cv.KeyPointVector()
-        let keypoints2 = new cv.KeyPointVector()
+        // 检测两个图像的特征点和描述符
+        let keyPoints1 = new cv.KeyPointVector()
         let descriptors1 = new cv.Mat()
+        orb.detectAndCompute(img1, new cv.Mat(), keyPoints1, descriptors1)
+
+        let keyPoints2 = new cv.KeyPointVector()
         let descriptors2 = new cv.Mat()
-        orb.detectAndCompute(grayPrevious, new cv.Mat(), keypoints1, descriptors1)
-        orb.detectAndCompute(grayCurrent, new cv.Mat(), keypoints2, descriptors2)
+        orb.detectAndCompute(img2, new cv.Mat(), keyPoints2, descriptors2)
 
-        // Check if descriptors are empty
-        if (descriptors1.rows === 0 || descriptors2.rows === 0) {
-          return new cv.Point(0, 0)
-        }
+        // 使用 BFMatcher 匹配描述符
+        let bf = new cv.BFMatcher(cv.NORM_HAMMING, true)
+        let matches = new cv.DMatchVector()
+        bf.match(descriptors1, descriptors2, matches)
 
-        // Use BFMatcher for feature matching
-        let bf = new cv.BFMatcher(cv.NORM_HAMMING, false)
-        let matches = new cv.DMatchVectorVector()
-        bf.knnMatch(descriptors1, descriptors2, matches, 2)
+        // 将 cv.DMatchVector 对象转换为数组并排序
+        let matchesArray = Array.from({ length: matches.size() }, (_, i) => matches.get(i))
+        matchesArray.sort((a, b) => a.distance - b.distance)
 
-        // Apply Lowe's ratio test
-        let goodMatches = []
-        for (let i = 0; i < matches.size(); i++) {
-          let m = matches.get(i).get(0)
-          let n = matches.get(i).get(1)
-          if (m.distance < 0.9 * n.distance) {
-            goodMatches.push(m)
-          }
-        }
-        console.log('👻 ~ goodMatches:', goodMatches)
+        // 找出最好的匹配
+        let bestNMatches = matchesArray.slice(0, 100)
 
-        // If there are enough good matches, calculate displacement vector
-        if (goodMatches.length > 5) {
-          let pts1 = []
-          let pts2 = []
-          for (let i = 0; i < goodMatches.length; i++) {
-            pts1.push(keypoints1.get(goodMatches[i].queryIdx).pt)
-            pts2.push(keypoints2.get(goodMatches[i].trainIdx).pt)
-          }
+        // 将 cv.KeyPointVector 对象转换为数组
+        let keyPoints1Array = Array.from({ length: keyPoints1.size() }, (_, i) => keyPoints1.get(i))
+        let keyPoints2Array = Array.from({ length: keyPoints2.size() }, (_, i) => keyPoints2.get(i))
 
-          let pts1Mat = cv.matFromArray(
-            pts1.length,
-            1,
-            cv.CV_32FC2,
-            [].concat(...pts1.map((p) => [p.x, p.y]))
-          )
-          let pts2Mat = cv.matFromArray(
-            pts2.length,
-            1,
-            cv.CV_32FC2,
-            [].concat(...pts2.map((p) => [p.x, p.y]))
-          )
+        // 计算透视变换矩阵
+        let srcPoints = cv.matFromArray(
+          bestNMatches.length,
+          1,
+          cv.CV_32FC2,
+          bestNMatches.map((match) => keyPoints1Array[match.queryIdx].pt)
+        )
+        let dstPoints = cv.matFromArray(
+          bestNMatches.length,
+          1,
+          cv.CV_32FC2,
+          bestNMatches.map((match) => keyPoints2Array[match.trainIdx].pt)
+        )
+        let homography = cv.findHomography(srcPoints, dstPoints, cv.RANSAC)
 
-          let mask = new cv.Mat()
-          let M = cv.findHomography(pts1Mat, pts2Mat, cv.RANSAC, 5.0, mask)
-          let matchesMask = mask.data
+        // 从透视变换矩阵中计算旋转角度
+        let a = homography.data64F[0]
+        let b = homography.data64F[3]
+        let rotationAngle = Math.atan2(b, a) * (180 / Math.PI)
 
-          // Calculate movement only for inliers
-          let inlierPts1 = []
-          let inlierPts2 = []
-          for (let i = 0; i < matchesMask.length; i++) {
-            if (matchesMask[i]) {
-              inlierPts1.push(pts1[i])
-              inlierPts2.push(pts2[i])
-            }
-          }
-
-          if (inlierPts1.length > 0) {
-            let movementX = 0
-            let movementY = 0
-            for (let i = 0; i < inlierPts1.length; i++) {
-              movementX += inlierPts2[i].x - inlierPts1[i].x
-              movementY += inlierPts2[i].y - inlierPts1[i].y
-            }
-
-            // // Calculate distance and angle
-            // let distance = Math.sqrt(movementX * movementX + movementY * movementY)
-            // console.log('👻 ~ distance:', distance)
-            // let angle = Math.atan2(movementY, movementX) * (180 / Math.PI) // Convert to degrees
-            // console.log('👻 ~ angle:', angle)
-
-            return new cv.Point(movementX / inlierPts1.length, movementY / inlierPts1.length)
-          } else {
-            return new cv.Point(0, 0)
-          }
-        } else {
-          return new cv.Point(0, 0)
-        }
-      }
-
-      // Cleanup
-      // currentScreenshot.delete()
-      // previousScreenshot.delete()
+        console.log('旋转角度：' + rotationAngle + '度')
+      })
     </script>
   </body>
 </html>

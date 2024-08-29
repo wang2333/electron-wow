@@ -16,6 +16,12 @@ import {
   imageDataToBase64,
   ImageInfoInParent,
   imageToBase64,
+  leidaPaddingX,
+  leidaPaddingY,
+  leidaPointerHeight,
+  leidaPointerWidth,
+  leidaPointerX,
+  leidaPointerY,
   matToCanvas,
   processImages
 } from '../Util/imageControl'
@@ -56,12 +62,6 @@ function Monster(): JSX.Element {
 
   // 保存图片计数
   const [imgNum, setImgNum] = useState(0)
-  // 雷达起点
-  const [startX, setStartX] = useState(1100)
-  const [startY, setStartY] = useState(68)
-  // 雷达尺寸
-  const [width, setWidth] = useState(151)
-  const [height, setHeight] = useState(148)
 
   // 录制路径类型
   const [pathType, setPathType] = useState<IPathType>('monster')
@@ -129,7 +129,12 @@ function Monster(): JSX.Element {
 
   /** 保存路径点 */
   const save = async () => {
-    const imageData = await grabRegion(startX, startY, width, height)
+    const imageData = await grabRegion(
+      leidaPointerX - leidaPaddingX,
+      leidaPointerY - leidaPaddingX,
+      2 * leidaPaddingX + leidaPointerWidth,
+      2 * leidaPaddingY + leidaPointerHeight
+    )
     const base64 = await imageDataToBase64(imageData, `./images/${pathType}-${imgNum}.png`)
 
     setImgNum(imgNum + 1)
@@ -174,28 +179,28 @@ function Monster(): JSX.Element {
       // 读取目标点资源
       const targetBase64 = await imageToBase64(`./images/${item}`)
       // 读取目标点特征
-      const tarPosition = await getImageFourFeature(targetBase64)
+      // const tarPosition = await getImageFourFeature(targetBase64)
       // 获取与目标点位的距离和角度
-      const { distance, score } = await getImagePosition(targetBase64, tarPosition, curPosition)
+      // const { distance, score } = await getImagePosition(targetBase64, tarPosition, curPosition)
 
       imgs[item] = targetBase64
-      result[item] = { distance, score }
+      // result[item] = { distance, score }
     }
 
-    // 从result中找到score不为0且distance最小的数据
-    const bsetImg = Object.keys(result).reduce((a: any, b: any) => {
-      if (result[a].score !== 0 && result[b].distance > result[a].distance) {
-        return a
-      }
-      return b
-    })
+    // // 从result中找到score不为0且distance最小的数据
+    // const bsetImg = Object.keys(result).reduce((a: any, b: any) => {
+    //   if (result[a].score !== 0 && result[b].distance > result[a].distance) {
+    //     return a
+    //   }
+    //   return b
+    // })
 
-    const imgType = bsetImg.split('-')
+    // const imgType = bsetImg.split('-')
     // const step = +imgType[1].split('.')[0]
     // pathIndexRef.current = step
 
     setImgPaths(imgs)
-    setPathType(imgType[0] as IPathType)
+    // setPathType(imgType[0] as IPathType)
   }
 
   /** 无限循环执行脚本 */
@@ -312,7 +317,12 @@ function Monster(): JSX.Element {
   /** 获取当前雷达图特征 */
   const getCurPosition = async () => {
     // 截取当前位置图片
-    const curImageData = await grabRegion(startX, startY, width, height)
+    const curImageData = await grabRegion(
+      leidaPointerX - leidaPaddingX,
+      leidaPointerY - leidaPaddingX,
+      2 * leidaPaddingX + leidaPointerWidth,
+      2 * leidaPaddingY + leidaPointerHeight
+    )
     // 读取当前点资源
     const curBase64 = await imageDataToBase64(curImageData)
     // 读取当前点特征
@@ -382,43 +392,64 @@ function Monster(): JSX.Element {
   }
 
   const test = async () => {
-    const curBase64 = imgPaths[`${pathType}-${0}.png`]
+    // const curBase64 = imgPaths[`${pathType}-${0}.png`]
+    // const res = await getImageFourFeature(curBase64)
+
+    // const src = await base64ToMat(res.centerImg)
+    // const dst = new cv.Mat() // 创建一个新的Mat对象，用于存储旋转后的图片
+    // const center = new cv.Point(src.cols / 2, src.rows / 2) // 计算图片的中心点
+    // const M = cv.getRotationMatrix2D(center, 95, 1) // 获取旋转矩阵，60是旋转角度，1是缩放因子
+
+    // const dsize = new cv.Size(src.rows, src.cols) // 设置输出图像的大小
+    // cv.warpAffine(src, dst, M, dsize, cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar()) // 应用旋转矩阵
+
+    // cv.imshow('canvasOutput2', dst) // 显示旋转后的图片
+
+    // src.delete()
+    // dst.delete()
+    // M.delete() // 释放内存
+
+    const curBase64 = imgPaths[`${pathType}-${1}.png`]
     const targetBase64 = imgPaths[`${pathType}-${1}.png`]
+    const tar = await getImageFourFeature(curBase64)
+    console.log('👻 ~ imgPaths:', imgPaths)
+    const r = await processImages(tar.centerImg, imgTemplate.arrow)
+    console.log('👻 ~ r:', r)
 
     // const [{ distance, angle }, { angle: personAngle }] = await Promise.all([
     //   detectMovement2(curBase64, targetBase64),
     //   processImages(curBase64, imgTemplate.arrow)
     // ])
 
-    const [curPosition, tarPosition] = await Promise.all([
-      // getCurPosition(),
-      getImageFourFeature(curBase64),
-      getImageFourFeature(targetBase64)
-    ])
-    const [{ distance, angle, score }, { angle: personAngle }] = await Promise.all([
-      // 获取与目标点位的距离和角度
-      getImagePosition(targetBase64, tarPosition, curPosition),
-      // 人物当前视角角度
-      processImages(curPosition.centerImg, imgTemplate.arrow)
-    ])
-    console.log('👻 ~ distance:', distance, angle)
+    // const [curPosition, tarPosition] = await Promise.all([
+    //   // getCurPosition(),
+    //   getImageFourFeature(curBase64),
+    //   getImageFourFeature(targetBase64)
+    // ])
+    // const [{ distance, angle, score }, { angle: personAngle }] = await Promise.all([
+    //   // 获取与目标点位的距离和角度
+    //   getImagePosition(targetBase64, tarPosition, curPosition),
+    //   // 人物当前视角角度
+    //   processImages(curPosition.centerImg, imgTemplate.arrow)
+    // ])
+    // console.log('👻 ~ distance:', distance, angle)
 
-    if (score == 0) return
-    // 计算人物视角应该偏移的角度
-    let needAngle = 0
-    if (angle < 0) {
-      needAngle = personAngle - (360 + angle)
-    } else if (angle > 0) {
-      needAngle = (angle - personAngle) * -1
-    }
-    // 角度修正, 计算最低旋转角度
-    if (needAngle <= -180) {
-      needAngle = needAngle + 360
-    } else if (needAngle >= 180) {
-      needAngle = needAngle - 360
-    }
-    needAngle = +needAngle.toFixed(2)
-    console.log('👻 ~ needAngle:', needAngle)
+    // if (score == 0) return
+    // // 计算人物视角应该偏移的角度
+    // let needAngle = 0
+    // if (angle < 0) {
+    //   needAngle = personAngle - (360 + angle)
+    // } else if (angle > 0) {
+    //   needAngle = (angle - personAngle) * -1
+    // }
+    // // 角度修正, 计算最低旋转角度
+    // if (needAngle <= -180) {
+    //   needAngle = needAngle + 360
+    // } else if (needAngle >= 180) {
+    //   needAngle = needAngle - 360
+    // }
+    // needAngle = +needAngle.toFixed(2)
+    // console.log('👻 ~ needAngle:', needAngle)
 
     // // 调整视角
 
@@ -446,13 +477,13 @@ function Monster(): JSX.Element {
           <span>雷达起点：</span>
           <input
             type="number"
-            value={startX}
+            value={leidaPointerX}
             placeholder={'Y坐标'}
             onChange={(e) => setStartX(+e.target.value)}
           />
           <input
             type="number"
-            value={startY}
+            value={leidaPointerY}
             placeholder={'Y坐标'}
             onChange={(e) => setStartY(+e.target.value)}
           />
@@ -461,13 +492,13 @@ function Monster(): JSX.Element {
           <span>雷达尺寸：</span>
           <input
             type="number"
-            value={width}
+            value={leidaPointerWidth}
             placeholder={'宽度'}
             onChange={(e) => setWidth(+e.target.value)}
           />
           <input
             type="number"
-            value={height}
+            value={leidaPointerHeight}
             placeholder={'高度'}
             onChange={(e) => setHeight(+e.target.value)}
           />
@@ -504,6 +535,7 @@ function Monster(): JSX.Element {
         style={{
           display: 'flex',
           justifyContent: 'space-around',
+          alignItems: 'center',
           marginTop: '20px'
         }}
       >

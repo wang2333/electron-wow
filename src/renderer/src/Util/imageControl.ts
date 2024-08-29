@@ -1,4 +1,5 @@
 import { Mat, Point, Scalar } from '@techstark/opencv-js'
+import { sleep } from './mouseContril'
 
 const Jimp = window.Jimp
 const cv = window.cv
@@ -6,6 +7,18 @@ const Tesseract = window.tesseract
 
 // 定义特征截图的大小
 const CROP_SIZE = 30
+/** 雷达到指针x间距 */
+export const leidaPaddingX = 200
+/** 雷达到指针y间距 */
+export const leidaPaddingY = 200
+/** 雷达指针x坐标 */
+export const leidaPointerX = 200
+/** 雷达指针y坐标 */
+export const leidaPointerY = 200
+/** 雷达指针宽度 */
+export const leidaPointerWidth = 50
+/** 雷达指针高度 */
+export const leidaPointerHeight = 50
 
 /** base64图片生成img节点 */
 export const base64ToImage = async (base64: string): Promise<HTMLImageElement> => {
@@ -94,10 +107,16 @@ export const drawLine = (paneMat: Mat, point1: Point, point2: Point, color: Scal
 }
 
 // 确保裁剪不超出边界
-export const safeCrop = (src: Mat, centerX: number, centerY: number, size: number) => {
-  const x = Math.max(0, Math.min(centerX - Math.floor(size / 2), src.cols - size))
-  const y = Math.max(0, Math.min(centerY - Math.floor(size / 2), src.rows - size))
-  const rect = new cv.Rect(x, y, size, size)
+export const safeCrop = (
+  src: Mat,
+  centerX: number,
+  centerY: number,
+  width: number,
+  height: number
+) => {
+  const x = centerX - Math.floor(width / 2)
+  const y = centerY - Math.floor(height / 2)
+  const rect = new cv.Rect(x, y, width, height)
   return src.roi(rect)
 }
 
@@ -166,9 +185,6 @@ export const getImagePosition = async (
       bestMatch = matchResult
     }
   }
-
-  // 显示最终的匹配结果图像
-  cv.imshow('canvasOutput2', mat)
 
   // 释放大图矩阵的内存
   mat.delete()
@@ -241,15 +257,11 @@ export const getImageFourFeature = async (base64: string) => {
   const centerX = Math.floor(src.cols / 2)
   const centerY = Math.floor(src.rows / 2)
 
-  const centerImg = safeCrop(src, centerX, centerY, CROP_SIZE)
-  const leftImg = safeCrop(src, centerX - CROP_SIZE, centerY, CROP_SIZE)
-  const rightImg = safeCrop(src, centerX + CROP_SIZE, centerY, CROP_SIZE)
-  const topImg = safeCrop(src, centerX, centerY - CROP_SIZE, CROP_SIZE)
-  const bottomImg = safeCrop(src, centerX, centerY + CROP_SIZE, CROP_SIZE)
-  // const leftTopImg = safeCrop(src, centerX - CROP_SIZE, centerY - CROP_SIZE, CROP_SIZE)
-  // const leftBottomImg = safeCrop(src, centerX - CROP_SIZE, centerY + CROP_SIZE, CROP_SIZE)
-  // const rightTopImg = safeCrop(src, centerX + CROP_SIZE, centerY - CROP_SIZE, CROP_SIZE)
-  // const rightBottomImg = safeCrop(src, centerX - CROP_SIZE, centerY + CROP_SIZE, CROP_SIZE)
+  const centerImg = safeCrop(src, centerX, centerY, leidaPointerWidth, leidaPointerHeight)
+  const leftImg = safeCrop(src, centerX - CROP_SIZE, centerY, CROP_SIZE, CROP_SIZE)
+  const rightImg = safeCrop(src, centerX + CROP_SIZE, centerY, CROP_SIZE, CROP_SIZE)
+  const topImg = safeCrop(src, centerX, centerY - CROP_SIZE, CROP_SIZE, CROP_SIZE)
+  const bottomImg = safeCrop(src, centerX, centerY + CROP_SIZE, CROP_SIZE, CROP_SIZE)
 
   const obj = {
     centerImg: matToBase64(centerImg),
@@ -257,10 +269,6 @@ export const getImageFourFeature = async (base64: string) => {
     rightImg: matToBase64(rightImg),
     topImg: matToBase64(topImg),
     bottomImg: matToBase64(bottomImg)
-    // leftTopImg: matToBase64(leftTopImg),
-    // leftBottomImg: matToBase64(leftBottomImg),
-    // rightTopImg: matToBase64(rightTopImg),
-    // rightBottomImg: matToBase64(rightBottomImg)
   }
 
   // Clean up
@@ -282,10 +290,6 @@ export const processImages = async (queryImg: string, templateImg: string) => {
   // 转为灰度图像
   cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY)
   cv.cvtColor(template, template, cv.COLOR_RGBA2GRAY)
-
-  // // 对图像进行二值化处理
-  // cv.threshold(src, src, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
-  // cv.threshold(template, template, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
 
   let bestMatchVal = -1
   let bestAngle = 0
@@ -310,16 +314,23 @@ export const processImages = async (queryImg: string, templateImg: string) => {
       cv.BORDER_CONSTANT,
       new cv.Scalar()
     )
+    cv.imshow('canvasOutput', rotatedTemplate)
+    // 显示最终的匹配结果图像
+    cv.imshow('canvasOutput2', src)
+    await sleep(50)
 
     // 3. 执行模板匹配
     const result = new cv.Mat()
     const mask = new cv.Mat()
     cv.matchTemplate(src, rotatedTemplate, result, cv.TM_CCOEFF_NORMED, mask)
 
+    // TM_SQDIFF 126
+    // TM_SQDIFF_NORMED 136
     // 4. 找到最佳匹配
     const minMax = cv.minMaxLoc(result, mask)
     const maxVal = minMax.maxVal
     const maxLoc = minMax.maxLoc
+    console.log('👻 ~ maxVal:', maxVal, maxLoc)
 
     if (maxVal > bestMatchVal) {
       bestMatchVal = maxVal
