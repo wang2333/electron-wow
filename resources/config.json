@@ -8,11 +8,11 @@
   "micY": 171,
   "micColor": "#fbfbfbff",
 
-  "processX": 525,
-  "processY": 862,
-  "processColor": "#00a800ff",
+  "processX": 639,
+  "processY": 858,
+  "processColor": "#006200ff",
 
-  "loginOutX": 188,
-  "loginOutY": 497,
+  "loginOutX": 639,
+  "loginOutY": 858,
   "loginOutColor": "#7c92acff"
 }

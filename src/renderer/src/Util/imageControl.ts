@@ -7,15 +7,15 @@ const Tesseract = window.tesseract
 // 定义特征截图的大小
 const CROP_SIZE = 30
 /** 雷达到指针x间距 */
-export const leidaPaddingX = 74
+export const leidaPaddingX = 70
 /** 雷达到指针y间距 */
-export const leidaPaddingY = 70
+export const leidaPaddingY = 65
 /** 雷达指针x坐标 */
-export const leidaPointerX = 1162
+export const leidaPointerX = 1168
 /** 雷达指针y坐标 */
-export const leidaPointerY = 136
+export const leidaPointerY = 130
 /** 雷达指针宽度 */
-export const leidaPointerWidth = 15
+export const leidaPointerWidth = 18
 /** 雷达指针高度 */
 export const leidaPointerHeight = 18
 
@@ -148,7 +148,7 @@ export const getImagePosition = async (
   const mat = await base64ToMat(targetBase64)
 
   // 转为灰度图像
-  cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY)
+  // cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY)
 
   // 初始化最佳匹配结果
   let bestMatch: any = null
@@ -185,6 +185,7 @@ export const getImagePosition = async (
     }
   }
 
+  cv.imshow('canvasOutput2', mat)
   // 释放大图矩阵的内存
   mat.delete()
 
@@ -204,8 +205,8 @@ const matchAndDraw = async (paneMat: Mat, currentImg: string, targetImg: string)
   ])
 
   // 转为灰度图像
-  cv.cvtColor(curentMat, curentMat, cv.COLOR_RGBA2GRAY)
-  cv.cvtColor(targetMat, targetMat, cv.COLOR_RGBA2GRAY)
+  // cv.cvtColor(curentMat, curentMat, cv.COLOR_RGBA2GRAY)
+  // cv.cvtColor(targetMat, targetMat, cv.COLOR_RGBA2GRAY)
 
   // 对图像进行二值化处理
   // cv.threshold(curentMat, curentMat, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
@@ -290,6 +291,10 @@ export const processImages = async (queryImg: string, templateImg: string) => {
   cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY)
   cv.cvtColor(template, template, cv.COLOR_RGBA2GRAY)
 
+  // 对图像进行二值化处理
+  cv.threshold(src, src, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+  cv.threshold(template, template, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+
   let bestMatchVal = -1
   let bestAngle = 0
   let bestLocation = { x: 0, y: 0 }
@@ -313,10 +318,6 @@ export const processImages = async (queryImg: string, templateImg: string) => {
       cv.BORDER_CONSTANT,
       new cv.Scalar()
     )
-    // cv.imshow('canvasOutput', rotatedTemplate)
-    // // 显示最终的匹配结果图像
-    cv.imshow('canvasOutput2', src)
-    // await sleep(50)
 
     // 3. 执行模板匹配
     const result = new cv.Mat()
@@ -329,7 +330,10 @@ export const processImages = async (queryImg: string, templateImg: string) => {
     const minMax = cv.minMaxLoc(result, mask)
     const maxVal = minMax.maxVal
     const maxLoc = minMax.maxLoc
-    // console.log('👻 ~ maxVal:', maxVal, maxLoc)
+
+    // console.log('👻 ~ maxVal:', angle, maxVal.toFixed(4))
+    // cv.imshow('canvasOutput', src)
+    // cv.imshow('canvasOutput2', rotatedTemplate)
 
     if (maxVal > bestMatchVal) {
       bestMatchVal = maxVal

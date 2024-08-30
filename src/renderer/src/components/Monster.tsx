@@ -1,20 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { Point } from '@nut-tree/nut-js'
-import {
-  ARROW_IMG_PATH,
-  BLOOD_IMG_PATH,
-  COLOR_DICT,
-  DEGREES_PER_MILLISEOND,
-  PERSON_CENTER
-} from '../constants'
+import { ARROW_IMG_PATH, BLOOD_IMG_PATH, DEGREES_PER_MILLISEOND } from '../constants'
 import {
   base64ToMat,
-  calculateAngle,
   getImageFourFeature,
   getImagePosition,
   imageDataToBase64,
-  ImageInfoInParent,
   imageToBase64,
   leidaPaddingX,
   leidaPaddingY,
@@ -26,17 +17,7 @@ import {
   processImages
 } from '../Util/imageControl'
 import { Key } from '../Util/Key'
-import {
-  clickInRect,
-  colorAt,
-  grabRegion,
-  pressKey,
-  pressKeyDown,
-  pressKeyLong,
-  pressKeyUp,
-  sleep,
-  turning
-} from '../Util/mouseContril'
+import { grabRegion, pressKeyDown, pressKeyLong, pressKeyUp, sleep } from '../Util/mouseContril'
 
 interface IimgTemplate {
   /** 雷达任务箭头 */
@@ -54,11 +35,11 @@ function Monster(): JSX.Element {
   // 移动路径点标记
   const pathIndexRef = useRef(0)
   // 进入战斗标记
-  const isAttactRef = useRef(false)
+  // const isAttactRef = useRef(false)
   // 人物是否在移动中
   const isMoveRef = useRef(false)
   // 找到怪物标记
-  const isMoveMonsterRef = useRef(false)
+  // const isMoveMonsterRef = useRef(false)
 
   // 保存图片计数
   const [imgNum, setImgNum] = useState(0)
@@ -147,6 +128,8 @@ function Monster(): JSX.Element {
   const startLoop = async () => {
     saveLog(`脚本开始运行`)
     stopLoopRef.current = false
+
+    await sleep(2000)
     loop() // Start the loop
   }
 
@@ -155,7 +138,7 @@ function Monster(): JSX.Element {
     stopLoopRef.current = true
     pathIndexRef.current = 0
 
-    await sleep(500)
+    await sleep(2000)
     await playerStop()
     saveLog(`脚本结束运行`)
   }
@@ -168,12 +151,12 @@ function Monster(): JSX.Element {
 
   /** 查找当前的路径类型和路径点 */
   const checkCurrentPosition = async () => {
-    const curPosition = await getCurPosition()
+    // const curPosition = await getCurPosition()
     const attackPaths = await window.api.readdir('images')
     // 记录所有路径图片
     const imgNames = attackPaths.filter((v: string) => v.includes('.'))
 
-    const result = {}
+    // const result = {}
     const imgs = {}
     for await (const item of imgNames) {
       // 读取目标点资源
@@ -251,8 +234,8 @@ function Monster(): JSX.Element {
         // 向下一坐标移动
         await moveToTarget(pathIndexRef.current)
       } else {
-        // stopLoop()
-        pathIndexRef.current = 0
+        stopLoop()
+        // pathIndexRef.current = 0
       }
 
       await sleep(300)
@@ -293,16 +276,16 @@ function Monster(): JSX.Element {
     }
 
     // 调整视角
-    if (Math.abs(needAngle) > 5) {
+    if (Math.abs(needAngle) > 5 && Math.abs(needAngle) < 60) {
       await playerStop()
       // await turning(-needAngle)
-      // await pressKeyLong(
-      //   needAngle < 0 ? Key.A : Key.D,
-      //   Math.abs(needAngle) * DEGREES_PER_MILLISEOND
-      // )
+      await pressKeyLong(
+        needAngle < 0 ? Key.A : Key.D,
+        Math.abs(needAngle) * DEGREES_PER_MILLISEOND
+      )
       // await sleep(1000)
     }
-    // await playerForward()
+    await playerForward()
     // 到达目标点位后，停止移动
     if (distance < 1.5) {
       await playerStop()
@@ -333,47 +316,47 @@ function Monster(): JSX.Element {
     return curPosition
   }
 
-  /** 是否找到怪物 */
-  const isFindMonster = async () => {
-    // 切换怪物
-    if (!isMoveMonsterRef.current) {
-      await pressKey(Key.Tab)
-    }
-    // 判断怪物是否选中
-    const color = await colorAt({ x: COLOR_DICT.hasMonster[0], y: COLOR_DICT.hasMonster[1] })
-    if (color.includes(COLOR_DICT.hasMonster[2])) {
-      // 获取人物视角范围
-      const curImageData = await grabRegion(50, 50, 1600, 780)
-      const curBase64 = await imageDataToBase64(curImageData)
-      // 计算是否找到怪物
-      const { center: targetPoint, score } = await ImageInfoInParent(curBase64, imgTemplate.blood)
-      if (score > 0.8) {
-        return targetPoint
-      }
-    }
-    return false
-  }
+  // /** 是否找到怪物 */
+  // const isFindMonster = async () => {
+  //   // 切换怪物
+  //   if (!isMoveMonsterRef.current) {
+  //     await pressKey(Key.Tab)
+  //   }
+  //   // 判断怪物是否选中
+  //   const color = await colorAt({ x: COLOR_DICT.hasMonster[0], y: COLOR_DICT.hasMonster[1] })
+  //   if (color.includes(COLOR_DICT.hasMonster[2])) {
+  //     // 获取人物视角范围
+  //     const curImageData = await grabRegion(50, 50, 1600, 780)
+  //     const curBase64 = await imageDataToBase64(curImageData)
+  //     // 计算是否找到怪物
+  //     const { center: targetPoint, score } = await ImageInfoInParent(curBase64, imgTemplate.blood)
+  //     if (score > 0.8) {
+  //       return targetPoint
+  //     }
+  //   }
+  //   return false
+  // }
 
-  /** 向怪物移动 */
-  const moveToMonster = async (point: Point) => {
-    // 计算角度
-    const needAngle = calculateAngle(PERSON_CENTER, point)
+  // /** 向怪物移动 */
+  // const moveToMonster = async (point: Point) => {
+  //   // 计算角度
+  //   const needAngle = calculateAngle(PERSON_CENTER, point)
 
-    if (Math.abs(needAngle) > 10) {
-      await playerStop()
-      await turning(needAngle)
-    }
-    await playerForward()
-  }
+  //   if (Math.abs(needAngle) > 10) {
+  //     await playerStop()
+  //     await turning(needAngle)
+  //   }
+  //   await playerForward()
+  // }
 
-  /** 人物是否战斗中 */
-  const isPlayerAttact = async () => {
-    const color = await colorAt({ x: COLOR_DICT.playerAttack[0], y: COLOR_DICT.playerAttack[1] })
-    const color2 = await colorAt({ x: COLOR_DICT.monsteAttack[0], y: COLOR_DICT.monsteAttack[1] })
-    return (
-      !color.includes(COLOR_DICT.playerAttack[2]) && color2.includes(COLOR_DICT.monsteAttack[2])
-    )
-  }
+  // /** 人物是否战斗中 */
+  // const isPlayerAttact = async () => {
+  //   const color = await colorAt({ x: COLOR_DICT.playerAttack[0], y: COLOR_DICT.playerAttack[1] })
+  //   const color2 = await colorAt({ x: COLOR_DICT.monsteAttack[0], y: COLOR_DICT.monsteAttack[1] })
+  //   return (
+  //     !color.includes(COLOR_DICT.playerAttack[2]) && color2.includes(COLOR_DICT.monsteAttack[2])
+  //   )
+  // }
 
   /** 人物前进 */
   const playerForward = async () => {
@@ -409,9 +392,9 @@ function Monster(): JSX.Element {
     // dst.delete()
     // M.delete() // 释放内存
 
-    const curBase64 = imgPaths[`${pathType}-${8}.png`]
-    const tar = await getImageFourFeature(curBase64)
-    const r = await processImages(tar.centerImg, imgTemplate.arrow)
+    const curBase64 = await getCurPosition()
+    // const tar = await getImageFourFeature(curBase64)
+    const r = await processImages(curBase64.centerImg, imgTemplate.arrow)
     console.log('👻 ~ r:', r)
 
     // const [{ distance, angle }, { angle: personAngle }] = await Promise.all([
@@ -473,33 +456,13 @@ function Monster(): JSX.Element {
       <div className={'coordinates'}>
         <div className={'coordinates-item'}>
           <span>雷达起点：</span>
-          <input
-            type="number"
-            value={leidaPointerX}
-            placeholder={'Y坐标'}
-            onChange={(e) => setStartX(+e.target.value)}
-          />
-          <input
-            type="number"
-            value={leidaPointerY}
-            placeholder={'Y坐标'}
-            onChange={(e) => setStartY(+e.target.value)}
-          />
+          <input type="number" value={leidaPointerX} placeholder={'Y坐标'} />
+          <input type="number" value={leidaPointerY} placeholder={'Y坐标'} />
         </div>
         <div className={'coordinates-item'}>
           <span>雷达尺寸：</span>
-          <input
-            type="number"
-            value={leidaPointerWidth}
-            placeholder={'宽度'}
-            onChange={(e) => setWidth(+e.target.value)}
-          />
-          <input
-            type="number"
-            value={leidaPointerHeight}
-            placeholder={'高度'}
-            onChange={(e) => setHeight(+e.target.value)}
-          />
+          <input type="number" value={leidaPointerWidth} placeholder={'宽度'} />
+          <input type="number" value={leidaPointerHeight} placeholder={'高度'} />
         </div>
       </div>
 

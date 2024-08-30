@@ -86,11 +86,11 @@ app.on('ready', () => {
     // 在这里执行你想要的操作
     mainWindow.webContents.send('shortcut-pressed', 'F1')
   })
-  // globalShortcut.unregister('F2')
-  // globalShortcut.register('F2', () => {
-  //   // 在这里执行你想要的操作
-  //   mainWindow.webContents.send('shortcut-pressed', 'F2')
-  // })
+  globalShortcut.unregister('F2')
+  globalShortcut.register('F2', () => {
+    // 在这里执行你想要的操作
+    mainWindow.webContents.send('shortcut-pressed', 'F2')
+  })
   // globalShortcut.unregister('F3')
   // globalShortcut.register('F3', () => {
   //   // 在这里执行你想要的操作
