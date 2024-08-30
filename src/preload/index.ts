@@ -1,5 +1,6 @@
 import { contextBridge } from 'electron'
 import jimp from 'jimp'
+import { windowManager } from 'node-window-manager'
 import * as fs from 'node:fs/promises'
 import path from 'path'
 
@@ -8,14 +9,16 @@ import nut from '@nut-tree/nut-js'
 import cv from '@techstark/opencv-js'
 import tesseract from './tesseract/tesseract.esm.min.js'
 
-// const windows = windowManager.getWindows()
-// // 遍历所有窗口，找到标题匹配的窗口
-// for (const win of windows) {
-//   if (win.getTitle().includes('下载')) {
-//     win.setBounds({ x: 0, y: 0 })
-//     break
-//   }
-// }
+const windows = windowManager.getWindows()
+// 遍历所有窗口，找到标题匹配的窗口
+for (const win of windows) {
+  if (win.getTitle().includes('下载')) {
+    win.restore()
+    win.setBounds({ x: 0, y: 400, width: 800, height: 600 })
+    win.bringToTop()
+    break
+  }
+}
 
 // Custom APIs for renderer
 const api = {

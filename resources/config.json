@@ -14,5 +14,8 @@
 
   "loginOutX": 639,
   "loginOutY": 858,
-  "loginOutColor": "#7c92acff"
+  "loginOutColor": "#7c92acff",
+
+  "channelX": 639,
+  "channelY": 858
 }

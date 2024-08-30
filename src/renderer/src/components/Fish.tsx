@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { Key } from '@renderer/Util/Key'
-import { colorAt, mouseInfo, mouseLeftClick, pressKey, sleep } from '@renderer/Util/mouseContril'
+import {
+  colorAt,
+  mouseInfo,
+  mouseLeftClick,
+  pressKey,
+  pressKeys,
+  sleep
+} from '@renderer/Util/mouseContril'
 
 const Fish: React.FC = () => {
   const [key1, setKey1] = useState('J')
@@ -67,16 +74,34 @@ const Fish: React.FC = () => {
   /** 无限循环执行脚本 */
   const loop = async () => {
     while (!stopLoopRef.current) {
-      // 小退时处理
+      // 监测是否在小退界面
       const loginOutFlag = await isLoginOut()
       if (loginOutFlag) {
         isStartRef.current = false
         await mouseLeftClick({
-          x: config.processX,
-          y: config.processY
+          x: config.channelX,
+          y: config.channelY
         })
+        // 重新连接确认
         await pressKey(Key.Enter)
         await sleep(10000)
+        // 选择频道
+        await mouseLeftClick({
+          x: config.channelX,
+          y: config.channelY
+        })
+        await sleep(2000)
+        // 频道确认
+        await pressKey(Key.Enter)
+        await sleep(10000)
+
+        const isLoginError = await isLoginOut()
+        feedBack(isLoginError)
+        if (isLoginError) {
+          // 关闭游戏
+          await pressKeys(Key.LeftAlt, Key.F4)
+          stopLoop()
+        }
         continue
       }
 
@@ -91,7 +116,6 @@ const Fish: React.FC = () => {
             y: config.processY
           })
           await pressKey(Key.Space)
-          saveLog(`执行了随机行为`)
           await sleep(1000)
         }
 
@@ -127,14 +151,26 @@ const Fish: React.FC = () => {
     }
   }
 
+  /** 发送消息 */
+  const feedBack = (boolean: boolean) => {
+    const miao_code = 'tbrzT88'
+    const text = boolean ? '游戏重连失败' : '游戏重连成功'
+
+    fetch(`//miaotixing.com/trigger?id=${miao_code}&text=${text}&type=jsonp`, {
+      method: 'GET',
+      mode: 'cors',
+      credentials: 'same-origin'
+    })
+  }
+
   const isStartFish = async () => {
     const color = await colorAt({ x: config.processX, y: config.processY })
-    saveLog(`检测是否正在钓鱼---${config.processColor}/${color}`)
+    saveLog(`检测是否正在钓鱼---${color}/标准色值：${config.processColor}`)
     return color == config.processColor
   }
   const isLoginOut = async () => {
     const color = await colorAt({ x: config.loginOutX, y: config.loginOutY })
-    saveLog(`检测是否在小退界面---${config.loginOutColor}/${color}`)
+    saveLog(`检测是否在小退界面---${color}/标准色值：${config.loginOutColor}`)
     return color == config.loginOutColor
   }
 
