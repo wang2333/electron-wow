@@ -170,7 +170,7 @@ const Fish: React.FC = () => {
     const miao_code = 'tbrzT88'
     const text = boolean ? '游戏重连失败' : '游戏重连成功'
 
-    fetch(`//miaotixing.com/trigger?id=${miao_code}&text=${text}&type=jsonp`, {
+    fetch(`http://miaotixing.com/trigger?id=${miao_code}&text=${text}&type=jsonp`, {
       method: 'GET',
       mode: 'cors',
       credentials: 'same-origin'
