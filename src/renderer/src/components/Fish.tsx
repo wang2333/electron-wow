@@ -24,7 +24,7 @@ const Fish: React.FC = () => {
   const checkNumRef = useRef(0)
 
   useEffect(() => {
-    init()
+    init('win10-1K')
 
     window.electron.ipcRenderer.removeAllListeners('shortcut-pressed')
     window.electron.ipcRenderer.on('shortcut-pressed', async (_, info) => {
@@ -38,19 +38,19 @@ const Fish: React.FC = () => {
     }
   }, [])
 
-  const init = async () => {
-    const file = await window.api.readFile('./resources/config.json')
+  const init = async (fileName: string) => {
+    const file = await window.api.readFile(`./resources/${fileName}.json`)
     const config = JSON.parse(file.toString())
     setConfig(config)
   }
 
+  const handleSystemChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value
+    init(value)
+  }
+
   /** 脚本开始 */
   const startLoop = async () => {
-    await mouseLeftClick({
-      x: config.processX,
-      y: config.processY
-    })
-
     stopLoopRef.current = false
     loop()
   }
@@ -79,8 +79,8 @@ const Fish: React.FC = () => {
       if (loginOutFlag) {
         isStartRef.current = false
         await mouseLeftClick({
-          x: config.channelX,
-          y: config.channelY
+          x: config.loginOutX,
+          y: config.loginOutY
         })
         await sleep(2000)
         // 重新连接确认
@@ -98,11 +98,6 @@ const Fish: React.FC = () => {
 
         await pressKey(Key.Enter)
         await sleep(10000)
-
-        // const loginOutFlag2 = await isLoginOut()
-        // if (loginOutFlag2) {
-
-        // }
 
         const loginOutFlag3 = await isLoginOut()
         feedBack(loginOutFlag3)
@@ -182,7 +177,6 @@ const Fish: React.FC = () => {
     saveLog(`检测是否在小退界面---${color}/标准色值：${config.loginOutColor}`)
     return color == config.loginOutColor
   }
-
   /** 报错日志信息 */
   const saveLog = (info: string) => {
     const textarea = document.getElementById('textarea') as HTMLTextAreaElement
@@ -207,6 +201,14 @@ const Fish: React.FC = () => {
         <div className="item">
           <span>甩杆：</span>
           <input value={key2} placeholder={'甩杆'} onChange={(e) => setKey2(e.target.value)} />
+        </div>
+        <div className="item">
+          <span>电脑系统：</span>
+          <select onChange={handleSystemChange}>
+            <option value="win10-1K">win10-1K</option>
+            <option value="win11-1K">win11-1K</option>
+            <option value="win11-2K">win11-2K</option>
+          </select>
         </div>
       </div>
 

@@ -1,9 +1,4 @@
 {
-  "radarX": 1460,
-  "radarY": 74,
-  "radarWidth": 212,
-  "radarHeight": 212,
-
   "micX": 1439,
   "micY": 171,
   "micColor": "#fbfbfbff",
@@ -17,5 +12,10 @@
   "loginOutColor": "#5b84a7ff",
 
   "channelX": 363,
-  "channelY": 478
+  "channelY": 478,
+
+  "radarX": 1460,
+  "radarY": 74,
+  "radarWidth": 212,
+  "radarHeight": 212
 }

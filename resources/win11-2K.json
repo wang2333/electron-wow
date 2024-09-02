@@ -1,0 +1,21 @@
+{
+  "micX": 451,
+  "micY": 354,
+  "micColor": "#ffffffff",
+
+  "processX": 344,
+  "processY": 846,
+  "processColor": "#009200ff",
+
+  "loginOutX": 106,
+  "loginOutY": 452,
+  "loginOutColor": "#6389acff",
+
+  "channelX": 217,
+  "channelY": 574,
+
+  "radarX": 1460,
+  "radarY": 74,
+  "radarWidth": 212,
+  "radarHeight": 212
+}
