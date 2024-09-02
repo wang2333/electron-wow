@@ -13,6 +13,7 @@ import {
 const Fish: React.FC = () => {
   const [key1, setKey1] = useState('J')
   const [key2, setKey2] = useState('Q')
+  const [key3, setKey3] = useState('W')
 
   const [config, setConfig] = useState<any>({})
 
@@ -151,6 +152,14 @@ const Fish: React.FC = () => {
         }
       }
 
+      // 检测鱼饵
+      const baitFlag = await isBait()
+      if (!baitFlag) {
+        await pressKey(Key[key3])
+        await sleep(5000)
+        isStartRef.current = false
+      }
+
       await sleep(100)
     }
   }
@@ -167,16 +176,27 @@ const Fish: React.FC = () => {
     })
   }
 
+  // 检测是否正在钓鱼
   const isStartFish = async () => {
     const color = await colorAt({ x: config.processX, y: config.processY })
     saveLog(`检测是否正在钓鱼---${color}/标准色值：${config.processColor}`)
     return color == config.processColor
   }
+
+  // 检测是否在小退界面
   const isLoginOut = async () => {
     const color = await colorAt({ x: config.loginOutX, y: config.loginOutY })
     saveLog(`检测是否在小退界面---${color}/标准色值：${config.loginOutColor}`)
     return color == config.loginOutColor
   }
+
+  // 检测是否有鱼饵
+  const isBait = async () => {
+    const color = await colorAt({ x: config.baitX, y: config.baitY })
+    saveLog(`检测是否有鱼饵---${color}/标准色值：${config.baitColor}`)
+    return color == config.baitColor
+  }
+
   /** 报错日志信息 */
   const saveLog = (info: string) => {
     const textarea = document.getElementById('textarea') as HTMLTextAreaElement
@@ -201,6 +221,10 @@ const Fish: React.FC = () => {
         <div className="item">
           <span>甩杆：</span>
           <input value={key2} placeholder={'甩杆'} onChange={(e) => setKey2(e.target.value)} />
+        </div>
+        <div className="item">
+          <span>鱼饵：</span>
+          <input value={key3} placeholder={'鱼饵：'} onChange={(e) => setKey3(e.target.value)} />
         </div>
         <div className="item">
           <span>电脑系统：</span>

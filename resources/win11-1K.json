@@ -7,6 +7,10 @@
   "processY": 845,
   "processColor": "#00ae00ff",
 
+  "baitX": 344,
+  "baitY": 846,
+  "baitColor": "#009200ff",
+
   "loginOutX": 104,
   "loginOutY": 354,
   "loginOutColor": "#5b84a7ff",
