@@ -82,6 +82,7 @@ const Fish: React.FC = () => {
           x: config.channelX,
           y: config.channelY
         })
+        await sleep(2000)
         // 重新连接确认
         await pressKey(Key.Enter)
         await sleep(10000)
@@ -91,13 +92,21 @@ const Fish: React.FC = () => {
           y: config.channelY
         })
         await sleep(2000)
-        // 频道确认
+
         await pressKey(Key.Enter)
         await sleep(10000)
 
-        const isLoginError = await isLoginOut()
-        feedBack(isLoginError)
-        if (isLoginError) {
+        await pressKey(Key.Enter)
+        await sleep(10000)
+
+        // const loginOutFlag2 = await isLoginOut()
+        // if (loginOutFlag2) {
+
+        // }
+
+        const loginOutFlag3 = await isLoginOut()
+        feedBack(loginOutFlag3)
+        if (loginOutFlag3) {
           // 关闭游戏
           await pressKeys(Key.LeftAlt, Key.F4)
           stopLoop()

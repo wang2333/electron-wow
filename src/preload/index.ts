@@ -12,7 +12,7 @@ import tesseract from './tesseract/tesseract.esm.min.js'
 const windows = windowManager.getWindows()
 // 遍历所有窗口，找到标题匹配的窗口
 for (const win of windows) {
-  if (win.getTitle().includes('下载')) {
+  if (win.getTitle().includes('魔兽世界')) {
     win.restore()
     win.setBounds({ x: 0, y: 400, width: 800, height: 600 })
     win.bringToTop()
