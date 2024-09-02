@@ -7,16 +7,16 @@
   "processY": 845,
   "processColor": "#00ae00ff",
 
-  "loginOutX": 104,
-  "loginOutY": 354,
-  "loginOutColor": "#5b84a7ff",
+  "loginOutX": 101,
+  "loginOutY": 452,
+  "loginOutColor": "#bcc7d5ff",
 
-  "channelX": 363,
-  "channelY": 478,
+  "channelX": 222,
+  "channelY": 573,
 
-  "baitX": 689,
-  "baitY": 443,
-  "baitColor": "#a1a2a1ff",
+  "baitX": 635,
+  "baitY": 452,
+  "baitColor": "#000000ff",
 
   "radarX": 1460,
   "radarY": 74,

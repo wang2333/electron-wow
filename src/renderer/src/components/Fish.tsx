@@ -13,7 +13,7 @@ import {
 const Fish: React.FC = () => {
   const [key1, setKey1] = useState('J')
   const [key2, setKey2] = useState('Q')
-  const [key3, setKey3] = useState('W')
+  const [key3, setKey3] = useState('E')
 
   const [config, setConfig] = useState<any>({})
 
@@ -53,6 +53,7 @@ const Fish: React.FC = () => {
   /** 脚本开始 */
   const startLoop = async () => {
     stopLoopRef.current = false
+    await sleep(2000)
     loop()
   }
 
