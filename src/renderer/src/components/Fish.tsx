@@ -73,6 +73,8 @@ const Fish: React.FC = () => {
       // 监测是否在小退界面
       const loginOutFlag = await isLoginOut()
       if (loginOutFlag) {
+        feedBack('游戏掉线咯！！')
+
         isStartRef.current = false
 
         await sleep(10000)
@@ -104,13 +106,12 @@ const Fish: React.FC = () => {
         await sleep(10000)
 
         const loginOutFlag3 = await isLoginOut()
-        feedBack(loginOutFlag3)
+        feedBack(loginOutFlag3 ? '游戏重连失败' : '游戏重连成功')
         // if (loginOutFlag3) {
         //   // 关闭游戏
         //   await pressKeys(Key.LeftAlt, Key.F4)
         //   stopLoop()
         // }
-        continue
       }
 
       // 没有开始钓鱼，或者没鱼上钩
@@ -170,11 +171,10 @@ const Fish: React.FC = () => {
   }
 
   /** 发送消息 */
-  const feedBack = (boolean: boolean) => {
+  const feedBack = (msg: string) => {
     const miao_code = 'tbrzT88'
-    const text = boolean ? '游戏重连失败' : '游戏重连成功'
 
-    fetch(`http://miaotixing.com/trigger?id=${miao_code}&text=${text}&type=jsonp`, {
+    fetch(`http://miaotixing.com/trigger?id=${miao_code}&text=${msg}&type=jsonp`, {
       method: 'GET',
       mode: 'cors',
       credentials: 'same-origin'
