@@ -1,19 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { Key } from '@renderer/Util/Key'
-import {
-  colorAt,
-  mouseInfo,
-  mouseLeftClick,
-  pressKey,
-  pressKeys,
-  sleep
-} from '@renderer/Util/mouseContril'
+import { colorAt, mouseInfo, mouseLeftClick, pressKey, sleep } from '@renderer/Util/mouseContril'
 
 const Fish: React.FC = () => {
   const [key1, setKey1] = useState('J')
   const [key2, setKey2] = useState('Q')
   const [key3, setKey3] = useState('E')
+  const [key4, setKey4] = useState('2')
 
   const [config, setConfig] = useState<any>({})
 
@@ -80,9 +74,12 @@ const Fish: React.FC = () => {
       const loginOutFlag = await isLoginOut()
       if (loginOutFlag) {
         isStartRef.current = false
+
+        await sleep(10000)
+
         await mouseLeftClick({
-          x: config.loginOutX,
-          y: config.loginOutY
+          x: config.reConcatX,
+          y: config.reConcatY
         })
         await sleep(2000)
         // 重新连接确认
@@ -94,20 +91,25 @@ const Fish: React.FC = () => {
           y: config.channelY
         })
         await sleep(2000)
-
         await pressKey(Key.Enter)
         await sleep(10000)
 
+        // 选择角色
+        await mouseLeftClick({
+          x: config.roleX,
+          y: config.roleY + (+key4 - 1) * 40
+        })
+        await sleep(2000)
         await pressKey(Key.Enter)
         await sleep(10000)
 
         const loginOutFlag3 = await isLoginOut()
         feedBack(loginOutFlag3)
-        if (loginOutFlag3) {
-          // 关闭游戏
-          await pressKeys(Key.LeftAlt, Key.F4)
-          stopLoop()
-        }
+        // if (loginOutFlag3) {
+        //   // 关闭游戏
+        //   await pressKeys(Key.LeftAlt, Key.F4)
+        //   stopLoop()
+        // }
         continue
       }
 
@@ -154,11 +156,13 @@ const Fish: React.FC = () => {
       }
 
       // 检测鱼饵
-      const baitFlag = await isBait()
-      if (!baitFlag) {
-        await pressKey(Key[key3])
-        await sleep(5000)
-        isStartRef.current = false
+      if (key3) {
+        const baitFlag = await isBait()
+        if (!baitFlag) {
+          await pressKey(Key[key3])
+          await sleep(5000)
+          isStartRef.current = false
+        }
       }
 
       await sleep(100)
@@ -195,7 +199,10 @@ const Fish: React.FC = () => {
   const isBait = async () => {
     const color = await colorAt({ x: config.baitX, y: config.baitY })
     saveLog(`检测是否有鱼饵---${color}/标准色值：${config.baitColor}`)
-    return color == config.baitColor
+    if (!config.baitColor.includes(color)) {
+      console.log('isBait :>> ', color)
+    }
+    return config.baitColor.includes(color)
   }
 
   /** 报错日志信息 */
@@ -226,6 +233,16 @@ const Fish: React.FC = () => {
         <div className="item">
           <span>鱼饵：</span>
           <input value={key3} placeholder={'鱼饵：'} onChange={(e) => setKey3(e.target.value)} />
+        </div>
+        <div className="item">
+          <span>角色：</span>
+          <select value={key4} onChange={(e) => setKey4(e.target.value)}>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
         </div>
         <div className="item">
           <span>电脑系统：</span>

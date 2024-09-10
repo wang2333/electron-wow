@@ -1,22 +1,28 @@
 {
-  "micX": 1439,
+  "micX": 1440,
   "micY": 171,
   "micColor": "#fbfbfbff",
 
-  "processX": 361,
-  "processY": 845,
-  "processColor": "#00ae00ff",
+  "processX": 358,
+  "processY": 890,
+  "processColor": "#008400ff",
 
-  "loginOutX": 101,
+  "loginOutX": 104,
   "loginOutY": 452,
-  "loginOutColor": "#bcc7d5ff",
+  "loginOutColor": "#6c8fafff",
+
+  "reConcatX": 396,
+  "reConcatY": 720,
 
   "channelX": 222,
   "channelY": 573,
 
-  "baitX": 635,
-  "baitY": 452,
-  "baitColor": "#000000ff",
+  "roleX": 682,
+  "roleY": 510,
+
+  "baitX": 682,
+  "baitY": 444,
+  "baitColor": ["#000000ff"],
 
   "radarX": 1460,
   "radarY": 74,

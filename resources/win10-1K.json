@@ -3,20 +3,26 @@
   "micY": 354,
   "micColor": "#ffffffff",
 
-  "processX": 344,
-  "processY": 846,
-  "processColor": "#009200ff",
+  "processX": 353,
+  "processY": 845,
+  "processColor": "#00ae00ff",
 
-  "baitX": 344,
-  "baitY": 846,
-  "baitColor": "#009200ff",
+  "loginOutX": 103,
+  "loginOutY": 449,
+  "loginOutColor": "#c5d0daff",
 
-  "loginOutX": 106,
-  "loginOutY": 452,
-  "loginOutColor": "#6389acff",
+  "reConcatX": 396,
+  "reConcatY": 720,
 
-  "channelX": 217,
-  "channelY": 574,
+  "channelX": 539,
+  "channelY": 575,
+
+  "roleX": 689,
+  "roleY": 510,
+
+  "baitX": 634,
+  "baitY": 449,
+  "baitColor": ["#000000ff", "#735521ff", "#2"],
 
   "radarX": 1460,
   "radarY": 74,
