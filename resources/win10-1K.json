@@ -3,20 +3,20 @@
   "micY": 354,
   "micColor": "#ffffffff",
 
-  "reconnectX": 445,
+  "reconnectX": 360,
   "reconnectY": 850,
   "reconnectColor": "#135590ff",
 
-  "channelX": 539,
-  "channelY": 575,
+  "channelX": 235,
+  "channelY": 570,
 
-  "logeX": 103,
-  "logeY": 449,
-  "logeColor": "#c5d0daff",
+  "logeX": 100,
+  "logeY": 445,
+  "logeColor": "#3b6a87ff",
 
-  "processX": 353,
-  "processY": 845,
-  "processColor": "#00ae00ff",
+  "processX": 350,
+  "processY": 870,
+  "processColor": "#00ae00ffe",
 
   "roleNameX": 689,
   "roleNameY": 510,
