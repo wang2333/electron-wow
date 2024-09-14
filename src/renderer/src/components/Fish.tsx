@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { Key } from '@renderer/Util/Key'
-import { colorAt, mouseInfo, mouseLeftClick, pressKey, sleep } from '@renderer/Util/mouseContril'
+import {
+  colorAt,
+  mouseInfo,
+  mouseLeftClick,
+  pressKey,
+  pressKeys,
+  sleep
+} from '@renderer/Util/mouseContril'
 
 const Fish: React.FC = () => {
   const [key1, setKey1] = useState('J')
@@ -63,6 +70,8 @@ const Fish: React.FC = () => {
   }
 
   const getColor = async () => {
+    console.log('object :>> ', await colorAt({ x: config.baitX, y: config.baitY }))
+
     const { color, position } = await mouseInfo()
     saveLog(`当前位置颜色：${color}, 位置：${position.x}/${position.y}`)
   }
@@ -70,17 +79,27 @@ const Fish: React.FC = () => {
   /** 无限循环执行脚本 */
   const loop = async () => {
     while (!stopLoopRef.current) {
-      // 监测是否在小退界面
-      const loginOutFlag = await isLoginOut()
-      if (loginOutFlag) {
+      const isNeedOut =
+        [2, 5, 8, 11, 14, 17, 20, 23].includes(new Date().getHours()) &&
+        new Date().getMinutes() >= 58
+      if (isNeedOut) {
+        await pressKeys(Key.R)
+        await sleep(5 * 60 * 1000)
+      }
+
+      // 监测是否在重新连接界面
+      const reconnectFlag = await isReconnect()
+      if (reconnectFlag) {
+        feedBack('游戏掉线咯！！')
         isStartRef.current = false
-
-        await sleep(10000)
-
+        await sleep(30000)
         await mouseLeftClick({
-          x: config.reConcatX,
-          y: config.reConcatY
+          x: config.logeX,
+          y: config.logeY
         })
+        await sleep(2000)
+        // 确认掉线
+        await pressKey(Key.Enter)
         await sleep(2000)
         // 重新连接确认
         await pressKey(Key.Enter)
@@ -93,24 +112,30 @@ const Fish: React.FC = () => {
         await sleep(2000)
         await pressKey(Key.Enter)
         await sleep(10000)
+        continue
+      }
 
+      // 监测是否在小退界面
+      const roleFlag = await isRole()
+      if (roleFlag) {
+        isStartRef.current = false
+        await sleep(10000)
         // 选择角色
         await mouseLeftClick({
-          x: config.roleX,
-          y: config.roleY + (+key4 - 1) * 40
+          x: config.roleNameX,
+          y: config.roleNameY + (+key4 - 1) * 40
         })
         await sleep(2000)
         await pressKey(Key.Enter)
         await sleep(10000)
 
-        const loginOutFlag3 = await isLoginOut()
-        feedBack(loginOutFlag3)
-        // if (loginOutFlag3) {
-        //   // 关闭游戏
-        //   await pressKeys(Key.LeftAlt, Key.F4)
-        //   stopLoop()
-        // }
-        continue
+        const isFail = await isRole()
+        feedBack(isFail ? '游戏重连失败' : '游戏重连成功')
+        if (isFail) {
+          // 关闭游戏
+          await pressKeys(Key.LeftAlt, Key.F4)
+          stopLoop()
+        }
       }
 
       // 没有开始钓鱼，或者没鱼上钩
@@ -170,11 +195,10 @@ const Fish: React.FC = () => {
   }
 
   /** 发送消息 */
-  const feedBack = (boolean: boolean) => {
+  const feedBack = (msg: string) => {
     const miao_code = 'tbrzT88'
-    const text = boolean ? '游戏重连失败' : '游戏重连成功'
 
-    fetch(`http://miaotixing.com/trigger?id=${miao_code}&text=${text}&type=jsonp`, {
+    fetch(`http://miaotixing.com/trigger?id=${miao_code}&text=${msg}&type=jsonp`, {
       method: 'GET',
       mode: 'cors',
       credentials: 'same-origin'
@@ -188,19 +212,30 @@ const Fish: React.FC = () => {
     return color == config.processColor
   }
 
-  // 检测是否在小退界面
-  const isLoginOut = async () => {
-    const color = await colorAt({ x: config.loginOutX, y: config.loginOutY })
-    saveLog(`检测是否在小退界面---${color}/标准色值：${config.loginOutColor}`)
-    return color == config.loginOutColor
+  // 检测是否在重新连接界面
+  const isReconnect = async () => {
+    const color = await colorAt({ x: config.reconnectX, y: config.reconnectY })
+    if (color === config.reconnectColor) {
+      saveLog(`重新连接界面---${color}/标准色值：${config.reconnectColor}`)
+    }
+    return color == config.reconnectColor
+  }
+
+  // 检测是否在角色界面
+  const isRole = async () => {
+    const color = await colorAt({ x: config.logeX, y: config.logeY })
+    if (color === config.logeColor) {
+      saveLog(`角色界面---${color}/标准色值：${config.logeColor}`)
+    }
+    return color == config.logeColor
   }
 
   // 检测是否有鱼饵
   const isBait = async () => {
     const color = await colorAt({ x: config.baitX, y: config.baitY })
-    saveLog(`检测是否有鱼饵---${color}/标准色值：${config.baitColor}`)
     if (!config.baitColor.includes(color)) {
-      console.log('isBait :>> ', color)
+      saveLog(`没有鱼饵---${color}/标准色值：${config.baitColor}`)
+      console.log('color :>> ', color)
     }
     return config.baitColor.includes(color)
   }
