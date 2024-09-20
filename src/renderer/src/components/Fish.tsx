@@ -51,10 +51,6 @@ const Fish: React.FC = () => {
     const value = e.target.value
     init(value)
   }
-  const handleOutChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value
-    init(value)
-  }
 
   /** 脚本开始 */
   const startLoop = async () => {
