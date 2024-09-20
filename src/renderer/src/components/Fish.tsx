@@ -15,6 +15,7 @@ const Fish: React.FC = () => {
   const [key2, setKey2] = useState('Q')
   const [key3, setKey3] = useState('E')
   const [key4, setKey4] = useState('2')
+  const [key5, setKey5] = useState('2')
 
   const [config, setConfig] = useState<any>({})
 
@@ -50,6 +51,10 @@ const Fish: React.FC = () => {
     const value = e.target.value
     init(value)
   }
+  const handleOutChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value
+    init(value)
+  }
 
   /** 脚本开始 */
   const startLoop = async () => {
@@ -70,8 +75,6 @@ const Fish: React.FC = () => {
   }
 
   const getColor = async () => {
-    console.log('object :>> ', await colorAt({ x: config.baitX, y: config.baitY }))
-
     const { color, position } = await mouseInfo()
     saveLog(`当前位置颜色：${color}, 位置：${position.x}/${position.y}`)
   }
@@ -79,12 +82,14 @@ const Fish: React.FC = () => {
   /** 无限循环执行脚本 */
   const loop = async () => {
     while (!stopLoopRef.current) {
-      const isNeedOut =
-        [2, 5, 8, 11, 14, 17, 20, 23].includes(new Date().getHours()) &&
-        new Date().getMinutes() >= 58
-      if (isNeedOut) {
-        await pressKeys(Key.R)
-        await sleep(5 * 60 * 1000)
+      if (key5 === '1') {
+        const isNeedOut =
+          [2, 5, 8, 11, 14, 17, 20, 23].includes(new Date().getHours()) &&
+          new Date().getMinutes() >= 58
+        if (isNeedOut) {
+          await pressKeys(Key.R)
+          await sleep(5 * 60 * 1000)
+        }
       }
 
       // 监测是否在重新连接界面
@@ -285,6 +290,13 @@ const Fish: React.FC = () => {
             <option value="win10-1K">win10-1K</option>
             <option value="win11-1K">win11-1K</option>
             <option value="win11-2K">win11-2K</option>
+          </select>
+        </div>
+        <div className="item">
+          <span>冬拥湖小退：</span>
+          <select value={key5} onChange={(e) => setKey5(e.target.value)}>
+            <option value="1">开启</option>
+            <option value="0">关闭</option>
           </select>
         </div>
       </div>
