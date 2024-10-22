@@ -1,5 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react'
 
+import closeSound from '@renderer/assets/close.mp3'
+import closeBaoSound from '@renderer/assets/closeBao.mp3'
+import openSound from '@renderer/assets/open.mp3'
+import openBaoSound from '@renderer/assets/openBao.mp3'
 import { COLOR_TO_NAME_MAP, NAME_TO_KEYBORD_MAP } from '@renderer/constants/mappings'
 import { colorAt, pressKeys } from '@renderer/Util/mouseContril'
 import { Key } from '../Util/Key'
@@ -58,13 +62,38 @@ const AutoKey: React.FC = () => {
   const [baoX, setBaoX] = useState(200)
   const [monitorY, setMonitorY] = useState(100)
 
-  const handleShortcut = useCallback((info: string) => {
-    if (info === 'F1') {
-      setIsOpen((prev) => !prev)
-    } else if (info === 'F2') {
-      setIsBao((prev) => !prev)
-    }
-  }, [])
+  // 创建音频对象
+  const [openAudio] = useState(new Audio(openSound))
+  const [closeAudio] = useState(new Audio(closeSound))
+  const [openBaoAudio] = useState(new Audio(openBaoSound))
+  const [closeBaoAudio] = useState(new Audio(closeBaoSound))
+
+  const handleShortcut = useCallback(
+    (info: string) => {
+      if (info === 'F1') {
+        setIsOpen((prev) => {
+          const newState = !prev
+          if (newState) {
+            openAudio.play() // 播放开启音效
+          } else {
+            closeAudio.play() // 播放关闭音效
+          }
+          return newState
+        })
+      } else if (info === 'F2') {
+        setIsBao((prev) => {
+          const newState = !prev
+          if (newState) {
+            openBaoAudio.play() // 播放开启音效
+          } else {
+            closeBaoAudio.play() // 播放关闭音效
+          }
+          return newState
+        })
+      }
+    },
+    [openAudio, closeAudio]
+  )
 
   const performAutoKey = useCallback(async () => {
     const monitorX = isBao ? baoX : normalX
