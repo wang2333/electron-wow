@@ -1,9 +1,54 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
+
 import { COLOR_TO_NAME_MAP, NAME_TO_KEYBORD_MAP } from '@renderer/constants/mappings'
 import { colorAt, pressKeys } from '@renderer/Util/mouseContril'
 import { Key } from '../Util/Key'
 
-const AUTO_KEY_INTERVAL = 100 // 自动按键的间隔时间（毫秒）
+const AUTO_KEY_INTERVAL = 0 // 自动按键的间隔时间（毫秒）
+
+const containerStyle: React.CSSProperties = {
+  color: '#333',
+  backgroundColor: '#f0f0f0',
+  borderRadius: '8px',
+  padding: '20px',
+  maxWidth: '400px',
+  margin: '20px auto',
+  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+}
+
+const inputGroupStyle: React.CSSProperties = {
+  marginBottom: '15px'
+}
+
+const labelStyle: React.CSSProperties = {
+  display: 'inline-block',
+  width: '120px',
+  fontWeight: 'bold'
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100px',
+  padding: '5px',
+  border: '1px solid #ccc',
+  borderRadius: '4px'
+}
+
+const statusGroupStyle: React.CSSProperties = {
+  marginTop: '20px'
+}
+
+const statusItemStyle: React.CSSProperties = {
+  marginBottom: '10px',
+  display: 'flex',
+  alignItems: 'center'
+}
+
+const statusValueStyle: React.CSSProperties = {
+  marginLeft: '10px',
+  padding: '2px 8px',
+  borderRadius: '4px',
+  fontWeight: 'bold'
+}
 
 const AutoKey: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -23,7 +68,8 @@ const AutoKey: React.FC = () => {
 
   const performAutoKey = useCallback(async () => {
     const monitorX = isBao ? baoX : normalX
-    const color = await colorAt({ x: monitorX, y: monitorY })
+    const [color] = await Promise.all([colorAt({ x: monitorX, y: monitorY })])
+    console.log('👻 ~ color:', color)
 
     const keyName = COLOR_TO_NAME_MAP[color]
     if (keyName) {
@@ -57,13 +103,21 @@ const AutoKey: React.FC = () => {
   }, [isOpen, performAutoKey])
 
   return (
-    <div>
-      <CoordinateInput label="普通模式 X:" value={normalX} onChange={setNormalX} />
-      <CoordinateInput label="爆发模式 X:" value={baoX} onChange={setBaoX} />
-      <CoordinateInput label="监听坐标 Y:" value={monitorY} onChange={setMonitorY} />
-      <StatusDisplay label="是否开启:" value={isOpen} />
-      <StatusDisplay label="是否爆发:" value={isBao} />
-      <StatusDisplay label="当前按键:" value={currentKey} />
+    <div style={containerStyle}>
+      <div style={inputGroupStyle}>
+        <CoordinateInput label="普通模式 X:" value={normalX} onChange={setNormalX} />
+      </div>
+      <div style={inputGroupStyle}>
+        <CoordinateInput label="爆发模式 X:" value={baoX} onChange={setBaoX} />
+      </div>
+      <div style={inputGroupStyle}>
+        <CoordinateInput label="监听坐标 Y:" value={monitorY} onChange={setMonitorY} />
+      </div>
+      <div style={statusGroupStyle}>
+        <StatusDisplay label="是否开启:" value={isOpen} />
+        <StatusDisplay label="是否爆发:" value={isBao} />
+        <StatusDisplay label="当前按键:" value={currentKey} />
+      </div>
     </div>
   )
 }
@@ -76,8 +130,13 @@ interface CoordinateInputProps {
 
 const CoordinateInput: React.FC<CoordinateInputProps> = ({ label, value, onChange }) => (
   <div>
-    <label>{label} </label>
-    <input type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} />
+    <label style={labelStyle}>{label}</label>
+    <input
+      style={inputStyle}
+      type="number"
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+    />
   </div>
 )
 
@@ -86,10 +145,25 @@ interface StatusDisplayProps {
   value: boolean | string
 }
 
-const StatusDisplay: React.FC<StatusDisplayProps> = ({ label, value }) => (
-  <div>
-    {label} {typeof value === 'boolean' ? (value ? '是' : '否') : value}
-  </div>
-)
+const StatusDisplay: React.FC<StatusDisplayProps> = ({ label, value }) => {
+  const valueStyle: React.CSSProperties = {
+    ...statusValueStyle
+  }
+
+  if (typeof value === 'boolean') {
+    valueStyle.backgroundColor = value ? '#4CAF50' : '#F44336'
+    valueStyle.color = 'white'
+  } else {
+    valueStyle.backgroundColor = '#2196F3'
+    valueStyle.color = 'white'
+  }
+
+  return (
+    <div style={statusItemStyle}>
+      <span style={labelStyle}>{label}</span>
+      <span style={valueStyle}>{typeof value === 'boolean' ? (value ? '是' : '否') : value}</span>
+    </div>
+  )
+}
 
 export default AutoKey
