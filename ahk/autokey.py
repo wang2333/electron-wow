@@ -5,8 +5,10 @@ import sys
 from typing import Dict, Tuple
 from pynput import keyboard
 from threading import Thread
-import pygame  # 新增：导入pygame库用于音频播放
+import pygame
 import os
+from mss import mss  # 导入mss库
+import numpy as np  # 导入numpy用于高效的数组操作
 
 # 从TypeScript文件中提取的颜色到按键的映射
 COLOR_TO_KEY_MAP: Dict[str, str] = {
@@ -173,7 +175,7 @@ def rgb_to_hex(rgb: Tuple[int, int, int]) -> str:
     return '#{:02x}{:02x}{:02x}'.format(rgb[0], rgb[1], rgb[2])
 
 class AutoKeyController:
-    def __init__(self, x1: int, x2: int, y: int, interval: float = 0.1):
+    def __init__(self, x1: int, x2: int, y: int, interval: float = 0.01):
         self.x1 = x1
         self.x2 = x2
         self.y = y
@@ -181,7 +183,7 @@ class AutoKeyController:
         self.interval = interval
         self.running = False
 
-        # 新增：初始化pygame音频
+        # 初始化pygame音频
         pygame.mixer.init()
         current_dir = os.path.dirname(os.path.abspath(__file__))
         self.sound_f1 = pygame.mixer.Sound(os.path.join(current_dir, "", "model1.wav"))
@@ -189,6 +191,19 @@ class AutoKeyController:
         self.sound_f3_1 = pygame.mixer.Sound(os.path.join(current_dir, "", "start.wav"))
         self.sound_f3_2 = pygame.mixer.Sound(os.path.join(current_dir, "", "pause.wav"))
 
+        # 初始化mss
+        self.sct = mss()
+        self.monitor = {"top": y, "left": min(x1, x2), "width": abs(x2-x1)+1, "height": 1}
+
+        # 优化颜色匹配逻辑
+        self.color_map = self._create_color_map()
+
+    def _create_color_map(self):
+        color_map = {}
+        for hex_color, key in COLOR_TO_KEY_MAP.items():
+            r, g, b = int(hex_color[1:3], 16), int(hex_color[3:5], 16), int(hex_color[5:7], 16)
+            color_map[f"{r},{g},{b}"] = key
+        return color_map
 
     def toggle(self):
         self.running = not self.running
@@ -213,28 +228,25 @@ class AutoKeyController:
         while True:
             if self.running:
                 try:
-                    pixel_color = pyautogui.pixel(self.current_x, self.y)
-                    hex_color = rgb_to_hex(pixel_color)
-                    print(f"当前颜色: {hex_color}")
-                    if hex_color in COLOR_TO_KEY_MAP:
-                        key_combination = COLOR_TO_KEY_MAP[hex_color]
-                        print(f"触发按键: {key_combination}")
-                        keys = key_combination.split('-')
-
-                        # 按下所有键
-                        for key in keys:
-                            pyautogui.keyDown(key)
-
-                        # 短暂延迟
-                        time.sleep(random.uniform(0.05, 0.01))
-
-                        # 按相反顺序释放键盘的键
-                        for key in reversed(keys):
-                            pyautogui.keyUp(key)
-
+                    screenshot = self.sct.grab(self.monitor)
+                    img = np.array(screenshot)
+                    pixel_color = img[0, self.current_x - self.monitor["left"]][:3]
+                    color_key = f"{pixel_color[0]},{pixel_color[1]},{pixel_color[2]}"
+                    if color_key in self.color_map:
+                        key_combination = self.color_map[color_key]
+                        self.execute_key_press(key_combination)
                 except Exception as e:
                     print(f"发生错误: {e}")
             time.sleep(self.interval)
+
+    def execute_key_press(self, key_combination):
+        print(f"触发按键: {key_combination}")
+        keys = key_combination.split('-')
+        for key in keys:
+            pyautogui.keyDown(key)
+        time.sleep(0.01)
+        for key in reversed(keys):
+            pyautogui.keyUp(key)
 
 def on_press(key, controller):
     try:
