@@ -15,15 +15,15 @@
   "logeColor": "#3b6a87ff",
 
   "processX": 370,
-  "processY": 895,
-  "processColor": "#006100ff",
+  "processY": 888,
+  "processColor": "#008c00ff",
 
   "roleNameX": 710,
   "roleNameY": 510,
 
   "baitX": 677,
   "baitY": 440,
-  "baitColor": ["#90bec3ff", "#3f2e42ff"],
+  "baitColor": ["#90bec3ff", "#3f2e42ff", "#000000ff"],
 
   "radarX": 1460,
   "radarY": 74,
