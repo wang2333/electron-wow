@@ -5,6 +5,8 @@ import sys
 from typing import Dict, Tuple
 from pynput import keyboard
 from threading import Thread
+import pygame  # 新增：导入pygame库用于音频播放
+import os
 
 # 从TypeScript文件中提取的颜色到按键的映射
 COLOR_TO_KEY_MAP: Dict[str, str] = {
@@ -179,17 +181,32 @@ class AutoKeyController:
         self.interval = interval
         self.running = False
 
+        # 新增：初始化pygame音频
+        pygame.mixer.init()
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        self.sound_f1 = pygame.mixer.Sound(os.path.join(current_dir, "", "model1.wav"))
+        self.sound_f2 = pygame.mixer.Sound(os.path.join(current_dir, "", "model2.wav"))
+        self.sound_f3_1 = pygame.mixer.Sound(os.path.join(current_dir, "", "start.wav"))
+        self.sound_f3_2 = pygame.mixer.Sound(os.path.join(current_dir, "", "pause.wav"))
+
+
     def toggle(self):
         self.running = not self.running
+        if self.running:
+            self.sound_f3_1.play()
+        else:
+            self.sound_f3_2.play()
         print("自动按键已" + ("启动" if self.running else "停止"))
 
     def switch_to_x1(self):
         self.current_x = self.x1
         print(f"切换到坐标 X1: ({self.current_x}, {self.y})")
+        self.sound_f1.play()  # 新增：播放F1音频
 
     def switch_to_x2(self):
         self.current_x = self.x2
         print(f"切换到坐标 X2: ({self.current_x}, {self.y})")
+        self.sound_f2.play()  # 新增：播放F2音频
 
     def monitor_screen(self):
         print(f"开始监控坐标 ({self.current_x}, {self.y})")
@@ -198,7 +215,7 @@ class AutoKeyController:
                 try:
                     pixel_color = pyautogui.pixel(self.current_x, self.y)
                     hex_color = rgb_to_hex(pixel_color)
-
+                    print(f"当前颜色: {hex_color}")
                     if hex_color in COLOR_TO_KEY_MAP:
                         key_combination = COLOR_TO_KEY_MAP[hex_color]
                         print(f"触发按键: {key_combination}")
@@ -209,7 +226,7 @@ class AutoKeyController:
                             pyautogui.keyDown(key)
 
                         # 短暂延迟
-                        time.sleep(0.05)
+                        time.sleep(random.uniform(0.05, 0.01))
 
                         # 按相反顺序释放键盘的键
                         for key in reversed(keys):
@@ -266,5 +283,5 @@ if __name__ == "__main__":
         print("程序被用户中断")
     finally:
         print("正在清理资源...")
-        # 在这里可以添加任何需要的清理代码
+        pygame.mixer.quit()  # 新增：清理pygame音频资源
         sys.exit(0)  # 确保程序退出
