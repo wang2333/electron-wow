@@ -3,27 +3,27 @@
   "micY": 171,
   "micColor": "#fbfbfbff",
 
-  "reconnectX": 445,
-  "reconnectY": 850,
-  "reconnectColor": "#135590ff",
+  "reconnectX": 350,
+  "reconnectY": 755,
+  "reconnectColor": "#16538fff",
 
-  "channelX": 222,
+  "channelX": 460,
   "channelY": 573,
 
-  "logeX": 104,
-  "logeY": 452,
-  "logeColor": "#6c8fafff",
+  "logeX": 100,
+  "logeY": 455,
+  "logeColor": "#3b6a87ff",
 
-  "processX": 358,
-  "processY": 890,
-  "processColor": "#008400ff",
+  "processX": 370,
+  "processY": 895,
+  "processColor": "#006100ff",
 
-  "roleNameX": 682,
+  "roleNameX": 710,
   "roleNameY": 510,
 
-  "baitX": 682,
-  "baitY": 444,
-  "baitColor": ["#000000ff", "#3f2e42ff"],
+  "baitX": 677,
+  "baitY": 440,
+  "baitColor": ["#90bec3ff", "#3f2e42ff"],
 
   "radarX": 1460,
   "radarY": 74,

@@ -58,9 +58,9 @@ const AutoKey: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isBao, setIsBao] = useState(false)
   const [currentKey, setCurrentKey] = useState('')
-  const [normalX, setNormalX] = useState(100)
-  const [baoX, setBaoX] = useState(200)
-  const [monitorY, setMonitorY] = useState(100)
+  const [normalX, setNormalX] = useState(1)
+  const [baoX, setBaoX] = useState(2550)
+  const [monitorY, setMonitorY] = useState(25)
 
   // 创建音频对象
   const [openAudio] = useState(new Audio(openSound))
@@ -98,9 +98,8 @@ const AutoKey: React.FC = () => {
   const performAutoKey = useCallback(async () => {
     const monitorX = isBao ? baoX : normalX
     const [color] = await Promise.all([colorAt({ x: monitorX, y: monitorY })])
-    console.log('👻 ~ color:', color)
 
-    const keyName = COLOR_TO_NAME_MAP[color]
+    const keyName = COLOR_TO_NAME_MAP[color.substring(0, 7)]
     if (keyName) {
       const keyCode = NAME_TO_KEYBORD_MAP[keyName].split('-')
       const keyArr = keyCode.map((key) => Key[key])
