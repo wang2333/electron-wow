@@ -4,7 +4,7 @@ import { Key } from './Key'
 
 const { mouse, straightTo: nutStraightTo, screen, Region, keyboard } = window.nut
 
-keyboard.config.autoDelayMs = 0 // 设置键盘按键间隔（可选）
+keyboard.config.autoDelayMs = 200 // 设置键盘按键间隔（可选）
 mouse.config.autoDelayMs = 0 // 设置鼠标点击间隔（可选）
 mouse.config.mouseSpeed = 5000 // 设置鼠标移动速度（可选）
 
@@ -22,6 +22,17 @@ export const straightTo = (position: Point | Promise<Point>) => {
 export const colorAt = async (point: Point | Promise<Point>) => {
   const rgba = await screen.colorAt(point)
   return rgba.toHex()
+}
+
+/** 从图像数据中获取色值 */
+export const getColorFromImageData = (imageData: {
+  width: number
+  height: number
+  data: Buffer
+}) => {
+  // 假设只获取第一个像素的色值
+  const [r, g, b, a] = imageData.data.slice(0, 4)
+  return { r, g, b, a }
 }
 
 /** 指定区域截图 */

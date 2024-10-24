@@ -1,14 +1,12 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 import closeSound from '@renderer/assets/close.mp3'
 import closeBaoSound from '@renderer/assets/closeBao.mp3'
 import openSound from '@renderer/assets/open.mp3'
 import openBaoSound from '@renderer/assets/openBao.mp3'
-import { COLOR_TO_NAME_MAP, NAME_TO_KEYBORD_MAP } from '@renderer/constants/mappings'
-import { colorAt, pressKeys } from '@renderer/Util/mouseContril'
+import { COLOR_TO_KEY_MAP } from '@renderer/constants/mappings'
+import { getColorFromImageData, grabRegion, pressKeys } from '@renderer/Util/mouseContril'
 import { Key } from '../Util/Key'
-
-const AUTO_KEY_INTERVAL = 0 // 自动按键的间隔时间（毫秒）
 
 const containerStyle: React.CSSProperties = {
   color: '#333',
@@ -37,10 +35,6 @@ const inputStyle: React.CSSProperties = {
   borderRadius: '4px'
 }
 
-const statusGroupStyle: React.CSSProperties = {
-  marginTop: '20px'
-}
-
 const statusItemStyle: React.CSSProperties = {
   marginBottom: '10px',
   display: 'flex',
@@ -62,51 +56,48 @@ const AutoKey: React.FC = () => {
   const [baoX, setBaoX] = useState(2550)
   const [monitorY, setMonitorY] = useState(25)
 
-  // 创建音频对象
-  const [openAudio] = useState(new Audio(openSound))
-  const [closeAudio] = useState(new Audio(closeSound))
-  const [openBaoAudio] = useState(new Audio(openBaoSound))
-  const [closeBaoAudio] = useState(new Audio(closeBaoSound))
+  const openAudio = useRef(new Audio(openSound))
+  const closeAudio = useRef(new Audio(closeSound))
+  const openBaoAudio = useRef(new Audio(openBaoSound))
+  const closeBaoAudio = useRef(new Audio(closeBaoSound))
 
-  const handleShortcut = useCallback(
-    (info: string) => {
-      if (info === 'F1') {
-        setIsOpen((prev) => {
-          const newState = !prev
-          if (newState) {
-            openAudio.play() // 播放开启音效
-          } else {
-            closeAudio.play() // 播放关闭音效
-          }
-          return newState
-        })
-      } else if (info === 'F2') {
-        setIsBao((prev) => {
-          const newState = !prev
-          if (newState) {
-            openBaoAudio.play() // 播放开启音效
-          } else {
-            closeBaoAudio.play() // 播放关闭音效
-          }
-          return newState
-        })
-      }
-    },
-    [openAudio, closeAudio]
-  )
+  const isOpenRef = useRef(isOpen)
+  const isBaoRef = useRef(isBao)
+  const normalXRef = useRef(normalX)
+  const baoXRef = useRef(baoX)
+  const monitorYRef = useRef(monitorY)
 
-  const performAutoKey = useCallback(async () => {
-    const monitorX = isBao ? baoX : normalX
-    const [color] = await Promise.all([colorAt({ x: monitorX, y: monitorY })])
+  useEffect(() => {
+    isOpenRef.current = isOpen
+    isBaoRef.current = isBao
+    normalXRef.current = normalX
+    baoXRef.current = baoX
+    monitorYRef.current = monitorY
+  }, [isOpen, isBao, normalX, baoX, monitorY])
 
-    const keyName = COLOR_TO_NAME_MAP[color.substring(0, 7)]
-    if (keyName) {
-      const keyCode = NAME_TO_KEYBORD_MAP[keyName].split('-')
-      const keyArr = keyCode.map((key) => Key[key])
-      await pressKeys(...keyArr)
-      setCurrentKey(keyCode.join('-'))
+  const handleShortcut = useCallback((info: string) => {
+    if (info === 'F1') {
+      setIsOpen((prev) => {
+        const newState = !prev
+        if (newState) {
+          openAudio.current.play()
+        } else {
+          closeAudio.current.play()
+        }
+        return newState
+      })
+    } else if (info === 'F2') {
+      setIsBao((prev) => {
+        const newState = !prev
+        if (newState) {
+          openBaoAudio.current.play()
+        } else {
+          closeBaoAudio.current.play()
+        }
+        return newState
+      })
     }
-  }, [isBao, baoX, normalX, monitorY])
+  }, [])
 
   useEffect(() => {
     const listener = (_, info) => handleShortcut(info)
@@ -116,17 +107,31 @@ const AutoKey: React.FC = () => {
     }
   }, [handleShortcut])
 
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout | null = null
-
-    if (isOpen) {
-      intervalId = setInterval(performAutoKey, AUTO_KEY_INTERVAL)
+  const performAutoKey = useCallback(async () => {
+    if (!isOpenRef.current) return
+    const monitorX = isBaoRef.current ? baoXRef.current : normalXRef.current
+    const imageData = await grabRegion(monitorX, monitorYRef.current, 1, 1)
+    const { r, g, b } = getColorFromImageData(imageData)
+    const hexColor = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`
+    const keyName = COLOR_TO_KEY_MAP[hexColor]
+    console.log('👻 ~ hexColor:', hexColor)
+    if (keyName) {
+      const keyCode = keyName.split('-')
+      const keyArr = keyCode.map((key) => Key[key])
+      await pressKeys(...keyArr)
+      setCurrentKey(keyName)
     }
+  }, [])
 
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId)
+  useEffect(() => {
+    if (isOpen) {
+      const autoKeyLoop = async () => {
+        await performAutoKey()
+        if (isOpenRef.current) {
+          setTimeout(() => requestAnimationFrame(autoKeyLoop), Math.random() * 50)
+        }
       }
+      requestAnimationFrame(autoKeyLoop)
     }
   }, [isOpen, performAutoKey])
 
@@ -141,7 +146,7 @@ const AutoKey: React.FC = () => {
       <div style={inputGroupStyle}>
         <CoordinateInput label="监听坐标 Y:" value={monitorY} onChange={setMonitorY} />
       </div>
-      <div style={statusGroupStyle}>
+      <div style={{ marginTop: '20px' }}>
         <StatusDisplay label="是否开启:" value={isOpen} />
         <StatusDisplay label="是否爆发:" value={isBao} />
         <StatusDisplay label="当前按键:" value={currentKey} />
