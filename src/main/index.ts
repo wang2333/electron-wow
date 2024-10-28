@@ -90,13 +90,6 @@ app.on('ready', () => {
     // 在这里执行你想要的操作
     mainWindow.webContents.send('shortcut-pressed', 'F2')
   })
-  // globalShortcut.unregister('F3')
-  // globalShortcut.register('F3', () => {
-  //   // 在这里执行你想要的操作
-  //   mainWindow.webContents.send('shortcut-pressed', 'F3')
-  // })
-  // 检查快捷键是否注册成功
-  // console.log(globalShortcut.isRegistered('F1'))
 })
 
 app.on('will-quit', () => {

@@ -13,6 +13,7 @@ asarUnpack:
   - resources/**
 win:
   executableName: wow盒子
+  verifyUpdateCodeSignature: false
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
