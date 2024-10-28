@@ -137,6 +137,12 @@ const AutoKey: React.FC = () => {
 
   return (
     <div style={containerStyle}>
+      <div style={{ marginBottom: '20px' }}>
+        <StatusDisplay label="是否开启:" value={isOpen} />
+        <StatusDisplay label="是否爆发:" value={isBao} />
+        <StatusDisplay label="当前按键:" value={currentKey} />
+      </div>
+
       <div style={inputGroupStyle}>
         <CoordinateInput label="普通模式 X:" value={normalX} onChange={setNormalX} />
       </div>
@@ -145,11 +151,6 @@ const AutoKey: React.FC = () => {
       </div>
       <div style={inputGroupStyle}>
         <CoordinateInput label="监听坐标 Y:" value={monitorY} onChange={setMonitorY} />
-      </div>
-      <div style={{ marginTop: '20px' }}>
-        <StatusDisplay label="是否开启:" value={isOpen} />
-        <StatusDisplay label="是否爆发:" value={isBao} />
-        <StatusDisplay label="当前按键:" value={currentKey} />
       </div>
     </div>
   )
