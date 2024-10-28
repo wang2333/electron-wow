@@ -18,7 +18,8 @@ function createWindow(): void {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
       contextIsolation: false, // 关闭上下文隔离
-      nodeIntegration: true // 开启node集成
+      nodeIntegration: true, // 开启node集成
+      backgroundThrottling: false // 禁用后台节流
     }
   })
 
@@ -40,8 +41,6 @@ function createWindow(): void {
   }
 
   mainWindow.webContents.openDevTools()
-  /** 控制窗口置顶 */
-  mainWindow.setAlwaysOnTop(true, 'floating')
 }
 
 // This method will be called when Electron has finished

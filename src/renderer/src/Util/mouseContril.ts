@@ -154,6 +154,7 @@ export const pressKey = async (key: Key) => {
 // 组合按键
 export const pressKeys = async (...keys: Key[]) => {
   await keyboard.pressKey(...keys)
+  await sleep(100)
   await keyboard.releaseKey(...keys)
 }
 

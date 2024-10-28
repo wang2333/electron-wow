@@ -128,7 +128,7 @@ const AutoKey: React.FC = () => {
       const autoKeyLoop = async () => {
         await performAutoKey()
         if (isOpenRef.current) {
-          setTimeout(() => requestAnimationFrame(autoKeyLoop), Math.random() * 50)
+          setTimeout(() => requestAnimationFrame(autoKeyLoop), Math.random() * 100)
         }
       }
       requestAnimationFrame(autoKeyLoop)
