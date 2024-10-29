@@ -35,7 +35,7 @@ const App: React.FC = () => {
       <div style={styles.header}>
         <div style={styles.logo}>
           <span style={styles.logoIcon}>🎮</span>
-          <span style={styles.logoText}>WOW盒子</span>
+          <span style={styles.logoText}>魔兽盒子</span>
         </div>
         <div style={styles.nav}>
           <a
