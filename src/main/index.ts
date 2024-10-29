@@ -1,5 +1,7 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, dialog, globalShortcut, ipcMain, shell } from 'electron'
 import { join } from 'path'
+import fs from 'fs-extra'
+import path from 'path'
 
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -59,6 +61,30 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
+
+  // 添加选择文件夹的IPC处理
+  ipcMain.handle('select-folder', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      properties: ['openDirectory']
+    })
+
+    if (!result.canceled) {
+      return result.filePaths[0]
+    }
+    return null
+  })
+
+  // 添加复制文件夹的IPC处理
+  ipcMain.handle('copy-folder', async (_, targetPath) => {
+    try {
+      const sourcePath = path.join(app.getAppPath(), 'resources/WR')
+      await fs.copy(sourcePath, path.join(targetPath, 'WR'))
+      return true
+    } catch (error) {
+      console.error('复制文件夹失败:', error)
+      throw error
+    }
+  })
 
   createWindow()
 

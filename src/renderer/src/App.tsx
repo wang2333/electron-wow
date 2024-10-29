@@ -1,29 +1,29 @@
 import { useState } from 'react'
 
-import Monster from './components/Monster'
 import Fish from './components/Fish'
 import AutoKey from './components/AutoKey'
+// import Monster from './components/Monster'
 
 const App: React.FC = () => {
-  const [active, setActive] = useState(3)
+  const [active, setActive] = useState(2)
 
   return (
     <div className="tabs">
       <div className="tab-buttons">
         <a onClick={() => setActive(1)} className={active === 1 ? 'active' : ''}>
-          刷怪
-        </a>
-        <a onClick={() => setActive(2)} className={active === 2 ? 'active' : ''}>
           钓鱼
         </a>
-        <a onClick={() => setActive(3)} className={active === 3 ? 'active' : ''}>
-          取色
+        <a onClick={() => setActive(2)} className={active === 2 ? 'active' : ''}>
+          AHK
         </a>
+        {/* <a onClick={() => setActive(3)} className={active === 3 ? 'active' : ''}>
+          刷怪
+        </a> */}
       </div>
       <div className="tab-contents">
-        {active === 1 && <Monster />}
-        {active === 2 && <Fish />}
-        {active === 3 && <AutoKey />}
+        {active === 1 && <Fish />}
+        {active === 2 && <AutoKey />}
+        {/* {active === 3 && <Monster />} */}
       </div>
     </div>
   )

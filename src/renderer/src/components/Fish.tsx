@@ -8,74 +8,28 @@ import {
   pressKeys,
   sleep
 } from '@renderer/Util/mouseContril'
+import { fishStyles as styles } from '@renderer/styles/fish'
+import { theme } from '@renderer/styles/theme'
+
+interface FishConfig {
+  [key: string]: any
+}
+
+interface FishKeys {
+  key1: string
+  key2: string
+  key3: string
+  key4: string
+  key5: string
+}
 
 const FEEDBACK_CODE = 'tbrzT88'
 const CHECK_INTERVAL = 100 // ms
 const RECONNECT_WAIT_TIME = 30000 // ms
 const ROLE_SELECT_INTERVAL = 40 // px
 
-interface FishConfig {
-  [key: string]: any
-}
-
-const containerStyle: React.CSSProperties = {
-  color: '#333',
-  backgroundColor: '#f0f0f0',
-  borderRadius: '8px',
-  padding: '20px',
-  maxWidth: '400px',
-  margin: '20px auto',
-  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-}
-
-const sectionStyle: React.CSSProperties = {
-  marginBottom: '20px'
-}
-
-const inputGroupStyle: React.CSSProperties = {
-  marginBottom: '10px',
-  display: 'flex',
-  alignItems: 'center'
-}
-
-const labelStyle: React.CSSProperties = {
-  width: '100px',
-  fontWeight: 'bold'
-}
-
-const inputStyle: React.CSSProperties = {
-  width: '80px',
-  padding: '5px',
-  border: '1px solid #ccc',
-  borderRadius: '4px'
-}
-
-const selectStyle: React.CSSProperties = {
-  ...inputStyle,
-  width: 'auto'
-}
-
-const buttonStyle: React.CSSProperties = {
-  padding: '8px 16px',
-  margin: '0 5px',
-  backgroundColor: '#4CAF50',
-  color: 'white',
-  border: 'none',
-  borderRadius: '4px',
-  cursor: 'pointer'
-}
-
-const textareaStyle: React.CSSProperties = {
-  width: '100%',
-  height: '100px',
-  padding: '10px',
-  border: '1px solid #ccc',
-  borderRadius: '4px',
-  resize: 'vertical'
-}
-
 const Fish: React.FC = () => {
-  const [keys, setKeys] = useState({
+  const [keys, setKeys] = useState<FishKeys>({
     key1: 'J',
     key2: 'Q',
     key3: 'E',
@@ -83,6 +37,7 @@ const Fish: React.FC = () => {
     key5: '0'
   })
   const [config, setConfig] = useState<FishConfig>({})
+  const [isRunning, setIsRunning] = useState(false)
 
   const stopLoopRef = useRef(false)
   const isStartRef = useRef(false)
@@ -110,12 +65,14 @@ const Fish: React.FC = () => {
 
   const startLoop = async () => {
     stopLoopRef.current = false
+    setIsRunning(true)
     await sleep(2000)
     loop()
   }
 
   const stopLoop = () => {
     stopLoopRef.current = true
+    setIsRunning(false)
   }
 
   const handleReset = () => {
@@ -290,137 +247,198 @@ const Fish: React.FC = () => {
   }
 
   return (
-    <div style={containerStyle}>
-      <ConfigInputs keys={keys} setKeys={setKeys} handleSystemChange={handleSystemChange} />
-      <ControlButtons
+    <div style={styles.container}>
+      <ConfigSection keys={keys} setKeys={setKeys} handleSystemChange={handleSystemChange} />
+      <ControlSection
         startLoop={startLoop}
         stopLoop={stopLoop}
         handleReset={handleReset}
         getColor={getColor}
+        isRunning={isRunning}
       />
-      <LogOutput />
+      <LogSection />
     </div>
   )
 }
 
-interface ConfigInputsProps {
-  keys: { [key: string]: string }
-  setKeys: React.Dispatch<
-    React.SetStateAction<{
-      key1: string
-      key2: string
-      key3: string
-      key4: string
-      key5: string
-    }>
-  >
+// 配置部分组件
+const ConfigSection: React.FC<{
+  keys: FishKeys
+  setKeys: React.Dispatch<React.SetStateAction<FishKeys>>
   handleSystemChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
-}
-
-const ConfigInputs: React.FC<ConfigInputsProps> = ({ keys, setKeys, handleSystemChange }) => {
-  const handleKeyChange = (key: string, value: string) => {
-    setKeys((prevKeys) => ({ ...prevKeys, [key]: value }))
+}> = ({ keys, setKeys, handleSystemChange }) => {
+  const handleKeyChange = (key: keyof FishKeys, value: string) => {
+    setKeys((prev) => ({ ...prev, [key]: value }))
   }
 
   return (
-    <div style={sectionStyle}>
-      <div style={inputGroupStyle}>
-        <span style={labelStyle}>收杆：</span>
-        <input
-          style={inputStyle}
-          value={keys.key1}
-          onChange={(e) => handleKeyChange('key1', e.target.value)}
-        />
+    <div style={styles.section} className="section">
+      <div style={styles.sectionTitle}>
+        <span>⚙️</span>
+        <span>基础配置</span>
       </div>
-      <div style={inputGroupStyle}>
-        <span style={labelStyle}>甩杆：</span>
-        <input
-          style={inputStyle}
-          value={keys.key2}
-          onChange={(e) => handleKeyChange('key2', e.target.value)}
-        />
-      </div>
-      <div style={inputGroupStyle}>
-        <span style={labelStyle}>鱼饵：</span>
-        <input
-          style={inputStyle}
-          value={keys.key3}
-          onChange={(e) => handleKeyChange('key3', e.target.value)}
-        />
-      </div>
-      <div style={inputGroupStyle}>
-        <span style={labelStyle}>角色：</span>
-        <select
-          style={selectStyle}
-          value={keys.key4}
-          onChange={(e) => handleKeyChange('key4', e.target.value)}
-        >
-          {[1, 2, 3, 4, 5].map((num) => (
-            <option key={num} value={num.toString()}>
-              {num}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div style={inputGroupStyle}>
-        <span style={labelStyle}>电脑系统：</span>
-        <select style={selectStyle} onChange={handleSystemChange}>
-          <option value="win11-1K">win11-1K</option>
-          <option value="win11-2K">win11-2K</option>
-          <option value="win10-1K">win10-1K</option>
-        </select>
-      </div>
-      <div style={inputGroupStyle}>
-        <span style={labelStyle}>定时小退：</span>
-        <select
-          style={selectStyle}
-          value={keys.key5}
-          onChange={(e) => handleKeyChange('key5', e.target.value)}
-        >
-          <option value="1">开启</option>
-          <option value="0">关闭</option>
-        </select>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+        {/* 左列 */}
+        <div>
+          <div style={{ ...styles.inputGroup }}>
+            <span style={{ ...styles.label }}>甩杆键位:</span>
+            <input
+              style={{ ...styles.input, width: '60px' }}
+              className="input"
+              value={keys.key2}
+              onChange={(e) => handleKeyChange('key2', e.target.value)}
+            />
+          </div>
+
+          <div style={{ ...styles.inputGroup }}>
+            <span style={{ ...styles.label }}>收杆键位:</span>
+            <input
+              style={{ ...styles.input, width: '60px' }}
+              className="input"
+              value={keys.key1}
+              onChange={(e) => handleKeyChange('key1', e.target.value)}
+            />
+          </div>
+
+          <div style={{ ...styles.inputGroup }}>
+            <span style={{ ...styles.label }}>鱼饵键位:</span>
+            <input
+              style={{ ...styles.input, width: '60px' }}
+              className="input"
+              value={keys.key3}
+              onChange={(e) => handleKeyChange('key3', e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* 右列 */}
+        <div>
+          <div style={{ ...styles.inputGroup }}>
+            <span style={{ ...styles.label }}>角色选择:</span>
+            <select
+              style={{ ...styles.input, width: '100px' }}
+              className="select"
+              value={keys.key4}
+              onChange={(e) => handleKeyChange('key4', e.target.value)}
+            >
+              {[1, 2, 3, 4, 5].map((num) => (
+                <option key={num} value={num.toString()}>
+                  {num}号位置
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ ...styles.inputGroup }}>
+            <span style={{ ...styles.label }}>系统选择:</span>
+            <select
+              style={{ ...styles.input, width: '100px' }}
+              className="select"
+              onChange={handleSystemChange}
+            >
+              <option value="win11-1K">Win11 (1K)</option>
+              <option value="win11-2K">Win11 (2K)</option>
+              <option value="win10-1K">Win10 (1K)</option>
+            </select>
+          </div>
+
+          <div style={{ ...styles.inputGroup }}>
+            <span style={{ ...styles.label }}>定时小退:</span>
+            <select
+              style={{ ...styles.input, width: '100px' }}
+              className="select"
+              value={keys.key5}
+              onChange={(e) => handleKeyChange('key5', e.target.value)}
+            >
+              <option value="1">开启</option>
+              <option value="0">关闭</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
   )
 }
 
-interface ControlButtonsProps {
+// 控制按钮部分组件
+const ControlSection: React.FC<{
   startLoop: () => Promise<void>
   stopLoop: () => void
   handleReset: () => void
   getColor: () => Promise<void>
-}
-
-const ControlButtons: React.FC<ControlButtonsProps> = ({
-  startLoop,
-  stopLoop,
-  handleReset,
-  getColor
-}) => {
+  isRunning: boolean
+}> = ({ startLoop, stopLoop, handleReset, getColor, isRunning }) => {
   return (
-    <div style={{ ...sectionStyle, display: 'flex', justifyContent: 'center' }}>
-      <button style={buttonStyle} onClick={startLoop}>
-        启动
-      </button>
-      <button style={buttonStyle} onClick={stopLoop}>
-        停止
-      </button>
-      <button style={buttonStyle} onClick={handleReset}>
-        重置
-      </button>
-      <button style={buttonStyle} onClick={getColor}>
-        取色
-      </button>
+    <div style={styles.section} className="section">
+      <div style={styles.sectionTitle}>
+        <span>🎮</span>
+        <span>操作控制</span>
+      </div>
+      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+        {!isRunning ? (
+          <button
+            onClick={startLoop}
+            className="button-primary"
+            style={{ ...styles.button.base, ...styles.button.primary }}
+          >
+            <span>▶️</span>
+            <span>启动</span>
+          </button>
+        ) : (
+          <button
+            onClick={stopLoop}
+            className="button-primary"
+            style={{ ...styles.button.base, ...styles.button.primary }}
+          >
+            <span>⏹️</span>
+            <span>停止</span>
+          </button>
+        )}
+        <button
+          onClick={handleReset}
+          className="button-secondary"
+          style={{ ...styles.button.base, ...styles.button.secondary }}
+        >
+          <span>🔄</span>
+          <span>重置</span>
+        </button>
+        <button
+          onClick={getColor}
+          className="button-secondary"
+          style={{ ...styles.button.base, ...styles.button.secondary }}
+        >
+          <span>🎨</span>
+          <span>取色</span>
+        </button>
+      </div>
     </div>
   )
 }
 
-const LogOutput: React.FC = () => {
+// 日志输出部分组件
+const LogSection: React.FC = () => {
   return (
-    <div style={sectionStyle}>
-      <span style={labelStyle}>输出结果：</span>
-      <textarea style={textareaStyle} rows={8} id="textarea" />
+    <div style={styles.section} className="section">
+      <div style={styles.sectionTitle}>
+        <span>📝</span>
+        <span>运行日志</span>
+      </div>
+      <textarea
+        style={{
+          width: '100%',
+          height: '120px',
+          padding: '8px 12px',
+          border: `1.5px solid ${theme.colors.border}`,
+          borderRadius: theme.borderRadius.sm,
+          fontSize: theme.fontSize.sm,
+          resize: 'vertical',
+          outline: 'none'
+        }}
+        className="textarea"
+        id="textarea"
+        readOnly
+      />
     </div>
   )
 }

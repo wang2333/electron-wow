@@ -1,0 +1,58 @@
+.section {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.input {
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #4caf50 !important;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.button-primary {
+  transition: all 0.2s ease;
+}
+
+.button-primary:hover {
+  background-color: #43a047 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+.button-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+}
+
+.button-secondary {
+  transition: all 0.2s ease;
+}
+
+.button-secondary:hover {
+  background-color: #f1f3f5 !important;
+  border-color: #cbd5e0;
+}
+
+.button-secondary:active {
+  background-color: #e9ecef;
+}
+
+.path-input {
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.path-input:focus {
+  border-color: #4caf50 !important;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
