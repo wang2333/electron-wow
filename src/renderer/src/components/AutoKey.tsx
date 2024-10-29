@@ -127,6 +127,7 @@ const AutoKey: React.FC = () => {
     window.electron.ipcRenderer.on('shortcut-pressed', listener)
     return () => {
       window.electron.ipcRenderer.removeListener('shortcut-pressed', listener)
+      stateRef.current.isOpen = false
     }
   }, [handleShortcut])
 

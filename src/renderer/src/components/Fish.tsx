@@ -391,7 +391,7 @@ const ControlSection: React.FC<{
             className="button-primary"
             style={{ ...styles.button.base, ...styles.button.primary }}
           >
-            <span>⏹️</span>
+            <span>⏹</span>
             <span>停止</span>
           </button>
         )}

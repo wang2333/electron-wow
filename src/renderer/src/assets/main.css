@@ -69,3 +69,33 @@ body {
     gap: 20px;
   }
 }
+
+/* 在现有样式基础上添加 */
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.tabs {
+  height: 100%;
+}
+
+/* 添加平滑滚动 */
+html {
+  scroll-behavior: smooth;
+}
+
+/* 优化字体渲染 */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
