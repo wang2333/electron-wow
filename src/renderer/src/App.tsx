@@ -14,8 +14,7 @@ const App: React.FC = () => {
       setIsLoggedIn(true)
     }
     return () => {
-      setIsLoggedIn(false)
-      localStorage.removeItem('isLoggedIn')
+      handleLogout()
     }
   }, [])
 
