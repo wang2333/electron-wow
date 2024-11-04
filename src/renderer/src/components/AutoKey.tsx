@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 
-import closeSound from '@renderer/assets/close.mp3'
-import closeBaoSound from '@renderer/assets/closeBao.mp3'
-import openSound from '@renderer/assets/open.mp3'
-import openBaoSound from '@renderer/assets/openBao.mp3'
+import model1Audio from '@renderer/assets/model1.mp3'
+import model2Audio from '@renderer/assets/model2.mp3'
+import closeAudio from '@renderer/assets/close.mp3'
 import { COLOR_TO_KEY_MAP } from '@renderer/constants/mappings'
 import { getColorFromImageData, grabRegion, pressKeys } from '@renderer/Util/mouseContril'
 import { Key } from '../Util/Key'
@@ -12,11 +11,11 @@ import { autoKeyStyles as styles } from '@renderer/styles/autoKey'
 
 // 类型定义
 interface AutoKeyState {
-  isOpen: boolean
-  isBao: boolean
+  isModel1: boolean
+  isModel2: boolean
   currentKey: string
-  normalX: number
-  baoX: number
+  model1X: number
+  model2X: number
   monitorY: number
   targetPath: string
 }
@@ -24,21 +23,20 @@ interface AutoKeyState {
 const AutoKey: React.FC = () => {
   // 状态管理
   const [state, setState] = useState<AutoKeyState>({
-    isOpen: false,
-    isBao: false,
+    isModel1: false,
+    isModel2: false,
     currentKey: '',
-    normalX: 1,
-    baoX: 2550,
+    model1X: 1,
+    model2X: 2550,
     monitorY: 25,
     targetPath: ''
   })
 
   // 音频引用
   const audioRefs = {
-    open: useRef(new Audio(openSound)),
-    close: useRef(new Audio(closeSound)),
-    openBao: useRef(new Audio(openBaoSound)),
-    closeBao: useRef(new Audio(closeBaoSound))
+    model1: useRef(new Audio(model1Audio)),
+    model2: useRef(new Audio(model2Audio)),
+    close: useRef(new Audio(closeAudio))
   }
 
   // 状态引用
@@ -52,21 +50,36 @@ const AutoKey: React.FC = () => {
     (info: string) => {
       if (info === 'F1') {
         setState((prev) => {
-          const newState = { ...prev, isOpen: !prev.isOpen }
-          if (newState.isOpen) {
-            audioRefs.open.current.play()
-          } else {
-            audioRefs.close.current.play()
+          const newState = {
+            ...prev,
+            isModel1: true,
+            isModel2: false
           }
+          audioRefs.model1.current.play()
+
           return newState
         })
       } else if (info === 'F2') {
         setState((prev) => {
-          const newState = { ...prev, isBao: !prev.isBao }
-          if (newState.isBao) {
-            audioRefs.openBao.current.play()
-          } else {
-            audioRefs.closeBao.current.play()
+          const newState = {
+            ...prev,
+            isModel1: false,
+            isModel2: true
+          }
+          audioRefs.model2.current.play()
+
+          return newState
+        })
+      } else if (info === 'F3') {
+        setState((prev) => {
+          const wasRunning = prev.isModel1 || prev.isModel2
+          const newState = {
+            ...prev,
+            isModel1: false,
+            isModel2: false
+          }
+          if (wasRunning) {
+            audioRefs.close.current.play()
           }
           return newState
         })
@@ -78,9 +91,9 @@ const AutoKey: React.FC = () => {
   // 自动按键逻辑
   const performAutoKey = useCallback(async () => {
     const currentState = stateRef.current
-    if (!currentState.isOpen) return
+    if (!currentState.isModel1 && !currentState.isModel2) return
 
-    const monitorX = currentState.isBao ? currentState.baoX : currentState.normalX
+    const monitorX = currentState.isModel1 ? currentState.model1X : currentState.model2X
     const imageData = await grabRegion(monitorX, currentState.monitorY, 1, 1)
     const { r, g, b } = getColorFromImageData(imageData)
     const hexColor = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`
@@ -127,21 +140,22 @@ const AutoKey: React.FC = () => {
     window.electron.ipcRenderer.on('shortcut-pressed', listener)
     return () => {
       window.electron.ipcRenderer.removeListener('shortcut-pressed', listener)
-      stateRef.current.isOpen = false
+      stateRef.current.isModel1 = false
+      stateRef.current.isModel2 = false
     }
   }, [handleShortcut])
 
   useEffect(() => {
-    if (state.isOpen) {
+    if (state.isModel1 || state.isModel2) {
       const autoKeyLoop = async () => {
         await performAutoKey()
-        if (stateRef.current.isOpen) {
+        if (stateRef.current.isModel1 || stateRef.current.isModel2) {
           setTimeout(() => requestAnimationFrame(autoKeyLoop), Math.random() * 100)
         }
       }
       requestAnimationFrame(autoKeyLoop)
     }
-  }, [state.isOpen, performAutoKey])
+  }, [state.isModel1, state.isModel2, performAutoKey])
 
   return (
     <div style={styles.container}>
@@ -164,8 +178,8 @@ const StatusSection: React.FC<{ state: AutoKeyState }> = ({ state }) => (
       <span>状态监控</span>
     </div>
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-      <StatusDisplay label="运行状态:" value={state.isOpen} />
-      <StatusDisplay label="爆发模式:" value={state.isBao} />
+      <StatusDisplay label="模式1:" value={state.isModel1} />
+      <StatusDisplay label="模式2:" value={state.isModel2} />
       <StatusDisplay label="当前按键:" value={state.currentKey || '等待操作'} />
     </div>
   </div>
@@ -182,13 +196,13 @@ const CoordinateSection: React.FC<{
     </div>
     <CoordinateInput
       label="普通模式 X:"
-      value={state.normalX}
-      onChange={(value) => setState((prev) => ({ ...prev, normalX: value }))}
+      value={state.model1X}
+      onChange={(value) => setState((prev) => ({ ...prev, model1X: value }))}
     />
     <CoordinateInput
       label="爆发模式 X:"
-      value={state.baoX}
-      onChange={(value) => setState((prev) => ({ ...prev, baoX: value }))}
+      value={state.model2X}
+      onChange={(value) => setState((prev) => ({ ...prev, model2X: value }))}
     />
     <CoordinateInput
       label="监听坐标 Y:"

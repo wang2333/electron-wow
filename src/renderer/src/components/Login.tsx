@@ -9,7 +9,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [userName, setUserName] = useState(() => localStorage.getItem('savedUserName') || 'admin')
   const [password, setPassword] = useState(() => localStorage.getItem('savedPassword') || '123456')
   const [error, setError] = useState('')
-  const [rememberMe, setRememberMe] = useState(() => localStorage.getItem('rememberMe') === 'true')
+  const [rememberMe, setRememberMe] = useState(true)
 
   const handleLogin = async () => {
     try {
