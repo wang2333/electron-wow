@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Fish from './components/Fish'
 import AutoKey from './components/AutoKey'
 import Login from './components/Login'
@@ -7,16 +7,6 @@ import { theme } from './styles/theme'
 const App: React.FC = () => {
   const [active, setActive] = useState(2)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-
-  useEffect(() => {
-    const loginStatus = localStorage.getItem('isLoggedIn')
-    if (loginStatus === 'true') {
-      setIsLoggedIn(true)
-    }
-    return () => {
-      handleLogout()
-    }
-  }, [])
 
   const handleLogin = (success: boolean) => {
     if (success) {

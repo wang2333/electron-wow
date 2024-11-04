@@ -6,9 +6,10 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const [userName, setUserName] = useState('admin')
-  const [password, setPassword] = useState('123456')
+  const [userName, setUserName] = useState(() => localStorage.getItem('savedUserName') || 'admin')
+  const [password, setPassword] = useState(() => localStorage.getItem('savedPassword') || '123456')
   const [error, setError] = useState('')
+  const [rememberMe, setRememberMe] = useState(() => localStorage.getItem('rememberMe') === 'true')
 
   const handleLogin = async () => {
     try {
@@ -21,6 +22,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       })
       if (isValid) {
         setError('')
+        if (rememberMe) {
+          localStorage.setItem('savedUserName', userName)
+          localStorage.setItem('savedPassword', password)
+          localStorage.setItem('rememberMe', 'true')
+        } else {
+          localStorage.removeItem('savedUserName')
+          localStorage.removeItem('savedPassword')
+          localStorage.removeItem('rememberMe')
+        }
         onLogin(true)
         localStorage.setItem('isLoggedIn', 'true')
       } else {
@@ -53,6 +63,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+        </div>
+        <div style={styles.rememberMe}>
+          <input
+            type="checkbox"
+            id="rememberMe"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+          />
+          <label htmlFor="rememberMe">记住密码</label>
         </div>
         <button style={styles.button} onClick={handleLogin}>
           登录
@@ -109,6 +128,14 @@ const styles = {
     marginBottom: '1rem',
     textAlign: 'center' as const,
     fontSize: '14px'
+  },
+  rememberMe: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    marginBottom: '1rem',
+    fontSize: '14px',
+    color: '#666'
   }
 }
 
