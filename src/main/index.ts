@@ -21,7 +21,8 @@ function createWindow(): void {
       sandbox: false,
       contextIsolation: false, // 关闭上下文隔离
       nodeIntegration: true, // 开启node集成
-      backgroundThrottling: false // 禁用后台节流
+      backgroundThrottling: false, // 禁用后台节流
+      webSecurity: false // 在开发环境下禁用 web 安全策略
     }
   })
 

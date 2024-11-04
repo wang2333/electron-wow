@@ -13,6 +13,10 @@ const App: React.FC = () => {
     if (loginStatus === 'true') {
       setIsLoggedIn(true)
     }
+    return () => {
+      setIsLoggedIn(false)
+      localStorage.removeItem('isLoggedIn')
+    }
   }, [])
 
   const handleLogin = (success: boolean) => {

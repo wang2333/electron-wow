@@ -1,17 +1,25 @@
 import React, { useState } from 'react'
+import request from '../Util/axios'
 
 interface LoginProps {
   onLogin: (success: boolean) => void
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const [username, setUsername] = useState('admin')
-  const [password, setPassword] = useState('123')
+  const [userName, setUserName] = useState('admin')
+  const [password, setPassword] = useState('123456')
   const [error, setError] = useState('')
 
   const handleLogin = async () => {
     try {
-      if (username === 'admin') {
+      const isValid = await request<boolean>('/api/verifyUser', {
+        method: 'GET',
+        params: {
+          userName,
+          password
+        }
+      })
+      if (isValid) {
         setError('')
         onLogin(true)
         localStorage.setItem('isLoggedIn', 'true')
@@ -19,7 +27,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         setError('用户名或密码错误')
       }
     } catch (err) {
-      setError('登录失败，请重试')
+      setError('登录失败，请联系管理员')
     }
   }
 
@@ -33,8 +41,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             style={styles.input}
             type="text"
             placeholder="用户名"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
           />
         </div>
         <div style={styles.inputGroup}>
