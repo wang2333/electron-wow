@@ -66,18 +66,19 @@ function checkForUpdates() {
 
   // 有可用更新
   autoUpdater.on('update-available', () => {
-    dialog
-      .showMessageBox({
-        type: 'info',
-        title: '应用更新',
-        message: '发现新版本,是否现在更新?',
-        buttons: ['是', '否']
-      })
-      .then((buttonIndex) => {
-        if (buttonIndex.response === 0) {
-          autoUpdater.downloadUpdate()
-        }
-      })
+    autoUpdater.downloadUpdate()
+    // dialog
+    //   .showMessageBox({
+    //     type: 'info',
+    //     title: '应用更新',
+    //     message: '发现新版本,是否现在更新?',
+    //     buttons: ['是', '否']
+    //   })
+    //   .then((buttonIndex) => {
+    //     if (buttonIndex.response === 0) {
+    //       autoUpdater.downloadUpdate()
+    //     }
+    //   })
   })
 
   // 没有可用更新
@@ -92,15 +93,26 @@ function checkForUpdates() {
 
   // 更新下载完毕
   autoUpdater.on('update-downloaded', () => {
-    autoUpdater.quitAndInstall()
     // dialog
     //   .showMessageBox({
-    //     title: '安装更新',
-    //     message: '更新下载完毕,应用将重启并进行安装'
+    //     type: 'info',
+    //     title: '应用更新',
+    //     message: '发现新版本,是否现在更新?',
+    //     buttons: ['是', '否']
     //   })
-    //   .then(() => {
-    //     autoUpdater.quitAndInstall()
+    //   .then((buttonIndex) => {
+    //     if (buttonIndex.response === 0) {
+    //       autoUpdater.quitAndInstall()
+    //     }
     //   })
+    dialog
+      .showMessageBox({
+        title: '安装更新',
+        message: '更新下载完毕,应用将重启并进行安装'
+      })
+      .then(() => {
+        autoUpdater.quitAndInstall()
+      })
   })
 
   // 执行自动更新检查
