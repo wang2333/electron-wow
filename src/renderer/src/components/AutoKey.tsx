@@ -96,7 +96,7 @@ const AutoKey: React.FC = () => {
     const monitorX = currentState.isModel1 ? currentState.model1X : currentState.model2X
     const imageData = await grabRegion(monitorX, currentState.monitorY, 1, 1)
     const { r, g, b } = getColorFromImageData(imageData)
-    const hexColor = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`
+    const hexColor = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toLowerCase()}`
 
     console.log('👻 ~ hexColor:', hexColor)
     const keyName = COLOR_TO_KEY_MAP[hexColor]
