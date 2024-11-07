@@ -41,6 +41,6 @@ appImage:
 npmRebuild: false
 publish:
   provider: generic
-  url: https://example.com/auto-updates
+  url: https://github.com/wang2333/electron-wow/releases/download/latest
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/

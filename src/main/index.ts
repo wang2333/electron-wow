@@ -1,7 +1,7 @@
 import { app, BrowserWindow, dialog, globalShortcut, ipcMain, shell } from 'electron'
-import { join } from 'path'
 import fs from 'fs-extra'
-import path from 'path'
+import path, { join } from 'path'
+import { autoUpdater } from 'electron-updater'
 
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -46,6 +46,66 @@ function createWindow(): void {
   mainWindow.webContents.openDevTools()
 }
 
+function checkForUpdates() {
+  // 配置更新服务器地址
+  autoUpdater.setFeedURL({
+    provider: 'generic',
+    url: 'https://github.com/wang2333/electron-wow/releases/download/latest'
+  })
+
+  // 检查更新出错
+  autoUpdater.on('error', (err) => {
+    dialog.showErrorBox('更新出错', err.message)
+  })
+
+  // 检查是否有更新
+  autoUpdater.on('checking-for-update', () => {
+    console.log('checking-for-update')
+  })
+
+  // 有可用更新
+  autoUpdater.on('update-available', () => {
+    dialog
+      .showMessageBox({
+        type: 'info',
+        title: '应用更新',
+        message: '发现新版本,是否现在更新?',
+        buttons: ['是', '否']
+      })
+      .then((buttonIndex) => {
+        if (buttonIndex.response === 0) {
+          autoUpdater.downloadUpdate()
+        }
+      })
+  })
+
+  // 没有可用更新
+  autoUpdater.on('update-not-available', () => {
+    console.log('update-not-available')
+  })
+
+  // 更新下载进度
+  autoUpdater.on('download-progress', (progressObj) => {
+    console.log('下载进度:', progressObj.percent)
+  })
+
+  // 更新下载完毕
+  autoUpdater.on('update-downloaded', () => {
+    autoUpdater.quitAndInstall()
+    // dialog
+    //   .showMessageBox({
+    //     title: '安装更新',
+    //     message: '更新下载完毕,应用将重启并进行安装'
+    //   })
+    //   .then(() => {
+    //     autoUpdater.quitAndInstall()
+    //   })
+  })
+
+  // 执行自动更新检查
+  autoUpdater.checkForUpdates()
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -88,6 +148,7 @@ app.whenReady().then(() => {
   })
 
   createWindow()
+  checkForUpdates()
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
