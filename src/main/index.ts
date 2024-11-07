@@ -55,7 +55,8 @@ function checkForUpdates() {
 
   // 检查更新出错
   autoUpdater.on('error', (err) => {
-    dialog.showErrorBox('更新出错', err.message)
+    // dialog.showErrorBox('更新出错', err.message)
+    console.log('error', err)
   })
 
   // 检查是否有更新
