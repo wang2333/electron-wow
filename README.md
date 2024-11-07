@@ -1,4 +1,4 @@
-# wow盒子
+# wow
 
 An Electron application with React and TypeScript
 
